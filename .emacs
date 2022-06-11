@@ -2,6 +2,10 @@
 
 (message "Running .emacs file.")
 
+(let ((path (shell-command-to-string "$SHELL -cl \"printf %s \\\"\\\$PATH\\\"\"")))
+  (setenv "PATH" path)
+  (setq exec-path (split-string path path-separator)))
+
 ;; Basics
 (setq inhibit-startup-message t)
 (scroll-bar-mode -1)
@@ -9,9 +13,11 @@
 (tool-bar-mode -1)
 
 (setq visible-bell t)
+;; dont bug me about symlinks
+(setq vc-follow-symlinks t)
 
 ;; Pick a theme here
-;;(load-theme 'doom-1337)
+;;(load-theme 'doom-1337 t)
 
 ;; What does this do exactly?
 (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>"))
@@ -60,6 +66,9 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
+;; Match parens
+(show-paren-mode 1)
+
 ;; Doom modeline needs all-the-icons
 (use-package doom-themes
   :init (load-theme 'doom-palenight t))
@@ -103,15 +112,35 @@
   :config
   (counsel-mode 1))
 
-;;
+;; magit
+(use-package magit)
+
+;; Try projectile
+
+(use-package projectile
+  :ensure t
+  ;;:pin melpa-stable
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("C-c p" . projectile-command-map)))
+
+
+;; Elpy
+
+(use-package elpy
+  :ensure t
+  :init
+  (elpy-enable))
+
+
+(setq elpy-rpc-python-command "/Users/scott/miniconda3/bin/python")
+(setq elpy-rpc-virtualenv-path 'current)
+
 
 
 (defvar my-packages
-  '(better-defaults
-    magit
-    ein
-    elpy
-    flycheck
+  '(ein
     py-autopep8
     fill-column-indicator
     auto-complete
@@ -283,7 +312,7 @@
  '(custom-enabled-themes (quote (atom-dark)))
  '(custom-safe-themes
    (quote
-    ("9b4ae6aa7581d529e20e5e503208316c5ef4c7005be49fdb06e5d07160b67adc" "5b7c31eb904d50c470ce264318f41b3bbc85545e4359e6b7d48ee88a892b1915" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "d1af5ef9b24d25f50f00d455bd51c1d586ede1949c5d2863bef763c60ddf703a" "3d4df186126c347e002c8366d32016948068d2e9198c496093a96775cc3b3eaa" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "72a81c54c97b9e5efcc3ea214382615649ebb539cb4f2fe3a46cd12af72c7607" "58c6711a3b568437bab07a30385d34aacf64156cc5137ea20e799984f4227265" "2642a1b7f53b9bb34c7f1e032d2098c852811ec2881eec2dc8cc07be004e45a0" "5dc0ae2d193460de979a463b907b4b2c6d2c9c4657b2e9e66b8898d2592e3de5" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" "98cc377af705c0f2133bb6d340bf0becd08944a588804ee655809da5d8140de6" "9b59e147dbbde5e638ea1cde5ec0a358d5f269d27bd2b893a0947c4a867e14c1" "3cc2385c39257fed66238921602d8104d8fd6266ad88a006d0a4325336f5ee02" "3cd28471e80be3bd2657ca3f03fbb2884ab669662271794360866ab60b6cb6e6" "e0d42a58c84161a0744ceab595370cbe290949968ab62273aed6212df0ea94b4" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "987b709680284a5858d5fe7e4e428463a20dfabe0a6f2a6146b3b8c7c529f08b" "0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" "96998f6f11ef9f551b427b8853d947a7857ea5a578c75aa9c4e7c73fe04d10b4" default)))
+    ("97db542a8a1731ef44b60bc97406c1eb7ed4528b0d7296997cbb53969df852d6" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "9b4ae6aa7581d529e20e5e503208316c5ef4c7005be49fdb06e5d07160b67adc" "5b7c31eb904d50c470ce264318f41b3bbc85545e4359e6b7d48ee88a892b1915" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "d1af5ef9b24d25f50f00d455bd51c1d586ede1949c5d2863bef763c60ddf703a" "3d4df186126c347e002c8366d32016948068d2e9198c496093a96775cc3b3eaa" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "72a81c54c97b9e5efcc3ea214382615649ebb539cb4f2fe3a46cd12af72c7607" "58c6711a3b568437bab07a30385d34aacf64156cc5137ea20e799984f4227265" "2642a1b7f53b9bb34c7f1e032d2098c852811ec2881eec2dc8cc07be004e45a0" "5dc0ae2d193460de979a463b907b4b2c6d2c9c4657b2e9e66b8898d2592e3de5" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" "98cc377af705c0f2133bb6d340bf0becd08944a588804ee655809da5d8140de6" "9b59e147dbbde5e638ea1cde5ec0a358d5f269d27bd2b893a0947c4a867e14c1" "3cc2385c39257fed66238921602d8104d8fd6266ad88a006d0a4325336f5ee02" "3cd28471e80be3bd2657ca3f03fbb2884ab669662271794360866ab60b6cb6e6" "e0d42a58c84161a0744ceab595370cbe290949968ab62273aed6212df0ea94b4" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "987b709680284a5858d5fe7e4e428463a20dfabe0a6f2a6146b3b8c7c529f08b" "0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" "96998f6f11ef9f551b427b8853d947a7857ea5a578c75aa9c4e7c73fe04d10b4" default)))
  '(exwm-floating-border-color "#232635")
  '(fci-rule-color "#073642")
  '(flymake-google-cpplint-command "/Users/scott/anaconda3/bin/cpplint")
@@ -300,8 +329,9 @@
     ("~/Documents/org/1.org" "~/Documents/org/ThingsToLearn.org")))
  '(package-selected-packages
    (quote
-    (counsel ivy-rich ivy vterm slime gnuplot gnuplot-mode blacken rainbow-mode minimap clang-format+ atom-one-dark-theme abyss-theme flymake-cursor atom-dark-theme auctex platformio-mode rainbow-delimiters arduino-mode flymake-google-cpplint iedit yasnippet yasnippet-snippets auto-complete company-c-headersac-dcd ## color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow sublimity sublime-themes py-autopep8 molokai-theme material-theme flycheck fill-column-indicator elpy ein color-theme better-defaults)))
+    (el-get jedi projectile counsel ivy-rich ivy vterm slime gnuplot gnuplot-mode blacken rainbow-mode minimap clang-format+ atom-one-dark-theme abyss-theme flymake-cursor atom-dark-theme auctex platformio-mode rainbow-delimiters arduino-mode flymake-google-cpplint iedit yasnippet yasnippet-snippets auto-complete company-c-headersac-dcd ## color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow sublimity sublime-themes py-autopep8 molokai-theme material-theme flycheck fill-column-indicator elpy ein color-theme better-defaults)))
  '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))
+ '(projectile-mode t nil (projectile))
  '(rustic-ansi-faces
    ["#292D3E" "#ff5370" "#c3e88d" "#ffcb6b" "#82aaff" "#c792ea" "#89DDFF" "#EEFFFF"])
  '(tetris-x-colors
