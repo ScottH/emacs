@@ -1,8 +1,14 @@
+;;; init.el --- emacs configuration
+
+
 ;; Emacs config
 
 ;;; Code:
 
 (message "Running emacs config file.")
+
+(org-babel-load-file (expand-file-name "conf.org" user-emacs-directory))
+
 
 
 ;; What is this for?
@@ -32,7 +38,6 @@
 ;; See: https://superuser.com/questions/364575/rebinding-s-mouse-1-to-mouse-2-in-emacs-on-os-x/1236645#1236645
 (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>"))
 
-
 ;; Package
 (require 'package)
 
@@ -41,6 +46,7 @@
                          ("elpa" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
+
 (unless package-archive-contents
   (package-refresh-contents))
 
@@ -60,6 +66,8 @@
   :config
   (auto-package-update-maybe)
   (auto-package-update-at-time "09:00"))
+
+;; Theme stuff
 
 ;; Pick a doom theme here
 (use-package all-the-icons)
@@ -83,6 +91,7 @@
   (doom-themes-org-config))
 
 
+
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
@@ -100,12 +109,197 @@
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 
-;; Nice bullets
+;; org-mode
+
+(use-package org
+  :mode (("\\.org$" . org-mode))
+  :ensure org-plus-contrib
+  :config
+  ;;(progn
+    ;; config stuff
+  )
+
+;; don't display images at full size
+(setq org-image-actual-width nil)
+
+;; Nice bullets for org
   (use-package org-superstar
       :config
       (setq org-superstar-special-todo-items t)
       (add-hook 'org-mode-hook (lambda ()
                                  (org-superstar-mode 1))))
+
+
+
+;; org roam
+
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory "~/Documents/repos/roam")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+	 ("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert))
+	 :config
+	 (org-roam-setup))
+
+;; Integration with conda
+
+(use-package conda
+  :ensure t
+  :init
+  (setq conda-anaconda-home (expand-file-name "~/miniconda3"))
+  (setq conda-env-home-directory (expand-file-name "~/miniconda3")))
+
+;;get current environment--from environment variable CONDA_DEFAULT_ENV
+(conda-env-activate (getenv "CONDA_DEFAULT_ENV"))
+;;(conda-env-autoactivate-mode t)
+;;
+(setq-default mode-line-format (cons '(:exec conda-env-current-name)  mode-line-format))
+
+;; lsp mode
+
+
+;; pyight
+;; (use-package lsp-pyright
+;;   :ensure t
+;;   :hook (python-mode . (lambda ()
+;;                           (require 'lsp-pyright)
+;;                           (lsp))))  ; or lsp-deferred
+
+
+;; (use-package lsp-mode
+;;   :init
+;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+;;   (setq lsp-keymap-prefix "C-c l")
+;;   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+;;          (XXX-mode . lsp)
+;;          ;; if you want which-key integration
+;;          (lsp-mode . lsp-enable-which-key-integration))
+;;   :commands lsp)
+
+
+;; eglot
+
+(use-package eglot
+  :ensure t)
+
+;; treemacs - copied from the repo docs
+
+(use-package treemacs
+  :ensure t
+  :defer t
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :config
+  (progn
+    (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+          treemacs-deferred-git-apply-delay        0.5
+          treemacs-directory-name-transformer      #'identity
+          treemacs-display-in-side-window          t
+          treemacs-eldoc-display                   'simple
+          treemacs-file-event-delay                5000
+          treemacs-file-extension-regex            treemacs-last-period-regex-value
+          treemacs-file-follow-delay               0.2
+          treemacs-file-name-transformer           #'identity
+          treemacs-follow-after-init               t
+          treemacs-expand-after-init               t
+          treemacs-find-workspace-method           'find-for-file-or-pick-first
+          treemacs-git-command-pipe                ""
+          treemacs-goto-tag-strategy               'refetch-index
+          treemacs-header-scroll-indicators        '(nil . "^^^^^^")'
+          treemacs-hide-dot-git-directory          t
+          treemacs-indentation                     2
+          treemacs-indentation-string              " "
+          treemacs-is-never-other-window           nil
+          treemacs-max-git-entries                 5000
+          treemacs-missing-project-action          'ask
+          treemacs-move-forward-on-expand          nil
+          treemacs-no-png-images                   nil
+          treemacs-no-delete-other-windows         t
+          treemacs-project-follow-cleanup          nil
+          treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+          treemacs-position                        'left
+          treemacs-read-string-input               'from-child-frame
+          treemacs-recenter-distance               0.1
+          treemacs-recenter-after-file-follow      nil
+          treemacs-recenter-after-tag-follow       nil
+          treemacs-recenter-after-project-jump     'always
+          treemacs-recenter-after-project-expand   'on-distance
+          treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+          treemacs-show-cursor                     nil
+          treemacs-show-hidden-files               t
+          treemacs-silent-filewatch                nil
+          treemacs-silent-refresh                  nil
+          treemacs-sorting                         'alphabetic-asc
+          treemacs-select-when-already-in-treemacs 'move-back
+          treemacs-space-between-root-nodes        t
+          treemacs-tag-follow-cleanup              t
+          treemacs-tag-follow-delay                1.5
+          treemacs-text-scale                      nil
+          treemacs-user-mode-line-format           nil
+          treemacs-user-header-line-format         nil
+          treemacs-wide-toggle-width               70
+          treemacs-width                           35
+          treemacs-width-increment                 1
+          treemacs-width-is-initially-locked       t
+          treemacs-workspace-switch-cleanup        nil)
+
+    ;; The default width and height of the icons is 22 pixels. If you are
+    ;; using a Hi-DPI display, uncomment this to double the icon size.
+    ;;(treemacs-resize-icons 44)
+
+    (treemacs-follow-mode t)
+    (treemacs-filewatch-mode t)
+    (treemacs-fringe-indicator-mode 'always)
+    (when treemacs-python-executable
+      (treemacs-git-commit-diff-mode t))
+
+    (pcase (cons (not (null (executable-find "git")))
+                 (not (null treemacs-python-executable)))
+      (`(t . t)
+       (treemacs-git-mode 'deferred))
+      (`(t . _)
+       (treemacs-git-mode 'simple)))
+
+    (treemacs-hide-gitignored-files-mode nil))
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t d"   . treemacs-select-directory)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-evil
+  :after (treemacs evil)
+  :ensure t)
+
+(use-package treemacs-projectile
+  :after (treemacs projectile)
+  :ensure t)
+
+(use-package treemacs-icons-dired
+  :hook (dired-mode . treemacs-icons-dired-enable-once)
+  :ensure t)
+
+(use-package treemacs-magit
+  :after (treemacs magit)
+  :ensure t)
+
+(use-package treemacs-persp ;;treemacs-perspective if you use perspective.el vs. persp-mode
+  :after (treemacs persp-mode) ;;or perspective vs. persp-mode
+  :ensure t
+  :config (treemacs-set-scope-type 'Perspectives))
+
+(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+  :after (treemacs)
+  :ensure t
+  :config (treemacs-set-scope-type 'Tabs))
+
 
 
 ;; Match parens
@@ -153,7 +347,7 @@
 (use-package magit)
 
 
-eval-buf;; Try projectile
+;; Try projectile
 (use-package projectile
   :ensure t
   ;;:pin melpa-stable
@@ -220,7 +414,6 @@ eval-buf;; Try projectile
 
 (set-fill-column 80)
 
-;;
 ;;
 (defvar my-packages
   '(ein
@@ -369,78 +562,6 @@ eval-buf;; Try projectile
 ;;(add-hook 'lisp-mode-hook (lambda () (slime-mode t)))
 ;;(add-hook 'inferior-lisp-mode-hook (lambda () (inferior-slime-mode t)))
 ;; Optionally, specify the lisp program you are using. Default is "lisp"
-(setq inferior-lisp-program "/usr/local/bin/clisp")
+;;(setq inferior-lisp-program "/usr/local/bin/clisp")
+;;; .emacs ends here
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default bold shadow italic underline bold bold-italic bold])
- '(ansi-color-names-vector
-   (vector "#839496" "#dc322f" "#859900" "#b58900" "#268bd2" "#d33682" "#2aa198" "#eee8d5"))
- '(auto-package-update-hide-results t nil nil "Customized with use-package auto-package-update")
- '(auto-package-update-interval 7 nil nil "Customized with use-package auto-package-update")
- '(auto-package-update-prompt-before-update t nil nil "Customized with use-package auto-package-update")
- '(custom-enabled-themes (quote (atom-dark)))
- '(custom-safe-themes
-   (quote
-    ("3319c893ff355a88b86ef630a74fad7f1211f006d54ce451aab91d35d018158f" "cf922a7a5c514fad79c483048257c5d8f242b21987af0db813d3f0b138dfaf53" "76ed126dd3c3b653601ec8447f28d8e71a59be07d010cd96c55794c3008df4d7" "6c531d6c3dbc344045af7829a3a20a09929e6c41d7a7278963f7d3215139f6a7" "c4063322b5011829f7fdd7509979b5823e8eea2abf1fe5572ec4b7af1dd78519" "da186cce19b5aed3f6a2316845583dbee76aea9255ea0da857d1c058ff003546" "97db542a8a1731ef44b60bc97406c1eb7ed4528b0d7296997cbb53969df852d6" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "9b4ae6aa7581d529e20e5e503208316c5ef4c7005be49fdb06e5d07160b67adc" "5b7c31eb904d50c470ce264318f41b3bbc85545e4359e6b7d48ee88a892b1915" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "d1af5ef9b24d25f50f00d455bd51c1d586ede1949c5d2863bef763c60ddf703a" "3d4df186126c347e002c8366d32016948068d2e9198c496093a96775cc3b3eaa" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "72a81c54c97b9e5efcc3ea214382615649ebb539cb4f2fe3a46cd12af72c7607" "58c6711a3b568437bab07a30385d34aacf64156cc5137ea20e799984f4227265" "2642a1b7f53b9bb34c7f1e032d2098c852811ec2881eec2dc8cc07be004e45a0" "5dc0ae2d193460de979a463b907b4b2c6d2c9c4657b2e9e66b8898d2592e3de5" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" "98cc377af705c0f2133bb6d340bf0becd08944a588804ee655809da5d8140de6" "9b59e147dbbde5e638ea1cde5ec0a358d5f269d27bd2b893a0947c4a867e14c1" "3cc2385c39257fed66238921602d8104d8fd6266ad88a006d0a4325336f5ee02" "3cd28471e80be3bd2657ca3f03fbb2884ab669662271794360866ab60b6cb6e6" "e0d42a58c84161a0744ceab595370cbe290949968ab62273aed6212df0ea94b4" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "987b709680284a5858d5fe7e4e428463a20dfabe0a6f2a6146b3b8c7c529f08b" "0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" "96998f6f11ef9f551b427b8853d947a7857ea5a578c75aa9c4e7c73fe04d10b4" default)))
- '(exwm-floating-border-color "#232635")
- '(fci-rule-color "#073642")
- '(flymake-google-cpplint-command "/Users/scott/anaconda3/bin/cpplint")
- '(highlight-tail-colors ((("#383f45") . 0) (("#323e51") . 20)))
- '(hl-sexp-background-color "#1c1f26")
- '(jdee-db-active-breakpoint-face-colors (cons "#1c1f2b" "#c792ea"))
- '(jdee-db-requested-breakpoint-face-colors (cons "#1c1f2b" "#c3e88d"))
- '(jdee-db-spec-breakpoint-face-colors (cons "#1c1f2b" "#676E95"))
- '(linum-format " %7i ")
- '(minimap-mode t)
- '(objed-cursor-color "#ff5370")
- '(org-agenda-files
-   (quote
-    ("~/Documents/org/1.org" "~/Documents/org/ThingsToLearn.org")))
- '(package-selected-packages
-   (quote
-    (which-key company-mode anaconda-mode el-get jedi projectile counsel ivy-rich ivy vterm slime gnuplot gnuplot-mode blacken rainbow-mode minimap clang-format+ atom-one-dark-theme abyss-theme flymake-cursor atom-dark-theme auctex platformio-mode rainbow-delimiters arduino-mode flymake-google-cpplint iedit yasnippet yasnippet-snippets auto-complete company-c-headersac-dcd ## color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow sublimity sublime-themes py-autopep8 molokai-theme material-theme flycheck fill-column-indicator elpy ein color-theme better-defaults)))
- '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))
- '(projectile-mode t nil (projectile))
- '(rustic-ansi-faces
-   ["#292D3E" "#ff5370" "#c3e88d" "#ffcb6b" "#82aaff" "#c792ea" "#89DDFF" "#EEFFFF"])
- '(tetris-x-colors
-   [[229 192 123]
-    [97 175 239]
-    [209 154 102]
-    [224 108 117]
-    [152 195 121]
-    [198 120 221]
-    [86 182 194]])
- '(vc-annotate-background nil)
- '(vc-annotate-color-map
-   (quote
-    ((20 . "#dc322f")
-     (40 . "#cb4b16")
-     (60 . "#b58900")
-     (80 . "#859900")
-     (100 . "#2aa198")
-     (120 . "#268bd2")
-     (140 . "#d33682")
-     (160 . "#6c71c4")
-     (180 . "#dc322f")
-     (200 . "#cb4b16")
-     (220 . "#b58900")
-     (240 . "#859900")
-     (260 . "#2aa198")
-     (280 . "#268bd2")
-     (300 . "#d33682")
-     (320 . "#6c71c4")
-     (340 . "#dc322f")
-     (360 . "#cb4b16"))))
- '(vc-annotate-very-old-color nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
