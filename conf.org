@@ -1,40 +1,18 @@
 * Emacs customization in org mode
 
-#+begin_src emacs-lisp
-(message "Running org configuration")
-#+end_src
-
-
-* Basic customizations
 
 #+begin_src emacs-lisp
-  ;; Basics
-  (setq inhibit-startup-message t)
-  (scroll-bar-mode -1)
-  (set-fringe-mode 10)
-  (tool-bar-mode -1)
-  (setq visible-bell t)
-
-  (setq vc-follow-symlinks t) ;; dont bug me about symlinks
-  (recentf-mode 1) ;; give me a list of recently visited files
-  (setq history-length 50) ;; remember 50 minibuffer entries
-  (savehist-mode 1) ;; save my minibuffer history
-  (save-place-mode 1) ;; go back to previous location in files
-  (global-auto-revert-mode 1) ;; track changes on disk
+(message "Running tangled conf.org")
 #+end_src
 
-* Dont pollute the init.el with custom variabels at the end of the file
-#+begin_src emacs-lisp
-  ;; Keep all the custom var separate
-  (setq custom-file (locate-user-emacs-file "custom-vars.el"))
-  (load custom-file 'noerror 'nomessage)
-#+end_src
-
+* tangle everything
+#+PROPERTY: header-args :tangle yes
 
 
 * Set up package manager and archives
 
 #+begin_src emacs-lisp
+  (message "Set up package")
   (require 'package)
 
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -47,9 +25,10 @@
 #+end_src
 
 
-* Set up use-package
+* Setup use-package
 #+begin_src emacs-lisp
-	;; Initialize use-package on non-Linux platforms
+  (message "Set up use-package")
+  ;; Initialize use-package on non-Linux platforms
   (unless (package-installed-p 'use-package)
       (package-install 'use-package))
 
@@ -68,18 +47,143 @@
 #+end_src
 
 
+* Basic customizations
+
+#+begin_src emacs-lisp
+  (message "Basic customizations")
+  
+  (setq inhibit-startup-message t)
+  (scroll-bar-mode -1)
+  (set-fringe-mode 10)
+  (tool-bar-mode -1)
+  (setq visible-bell t)
 
 
-* tangle everything
-#+PROPERTY: header-args :tangle yes
+  (recentf-mode 1) ;; give me a list of recently visited files
+  (setq history-length 50) ;; remember 50 minibuffer entries
+  (savehist-mode 1) ;; save my minibuffer history
+  (save-place-mode 1) ;; go back to previous location in files
+  (global-auto-revert-mode 1) ;; track changes on disk
+#+end_src
 
-* org mode customizations
+* Dont pollute the init.el with custom variabels at the end of the file
+#+begin_src emacs-lisp
+  (message "Set up separate custom var file")
+  ;; Keep all the custom var separate
+    (setq custom-file (locate-user-emacs-file "custom-vars.el"))
+    (load custom-file 'noerror 'nomessage)
+#+end_src
 
-** enable shift selection of regions
+
+
+* Theme
+#+begin_src emacs-lisp
+;; Theme stuff
+
+;; Pick a doom theme here
+(message "loading doom theme")
+(use-package all-the-icons)
+
+(use-package doom-themes
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-ayu-dark t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  ;;(doom-themes-neotree-config)
+  ;; or for treemacs users
+  ;;(setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  ;;(doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+
+
+
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
+#+end_src
+
+
+
+* Line numbering
+#+begin_src emacs-lisp
+  
+  (message "Set up line numbering")
+    ;; Line numbering
+    (column-number-mode)
+    (global-display-line-numbers-mode t)
+
+    ;; Disable line numbers for some modes
+    (dolist (mode '(org-mode-hook
+		    term-mode-hook
+		    shell-mode-hook
+		    treemacs-mode-hook
+		    eshell-mode-hook))
+      (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+#+end_src
+
+
+* org mode
+#+begin_src emacs-lisp
+(message "set up org-mode")
+
+(use-package org
+  :mode (("\\.org$" . org-mode))
+  :ensure org-plus-contrib
+  :config
+  ;;(progn
+    ;; config stuff
+  )
+
+;; don't display images at full size
+(setq org-image-actual-width nil)
+
+;; Nice bullets for org
+  (use-package org-superstar
+      :config
+      (setq org-superstar-special-todo-items t)
+      (add-hook 'org-mode-hook (lambda ()
+                                 (org-superstar-mode 1))))
+
+
+#+end_src
+
+#+RESULTS:
+: t
+
+
+
+- enable shift selection of regions
 
 #+begin_src emacs-lisp
   (setq org-support-shift-select t)
 #+end_src
+
+* org roam
+#+begin_src emacs-lisp
+  ;; org roam
+
+  (use-package org-roam
+    :ensure t
+    :custom
+    (org-roam-directory "~/Documents/repos/roam")
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+	   ("C-c n f" . org-roam-node-find)
+	   ("C-c n i" . org-roam-node-insert))
+	   :config
+	   (org-roam-setup))
+
+#+end_src
+
 
 * org tempo
 
@@ -105,4 +209,40 @@ Set up shortcuts for code blocks
 	       'org-tempo-tags) 
 #+end_src
 
+* Conda integration
+#+begin_src emacs-lisp
+  (message "Loading conda integration")
+  (use-package conda
+    :ensure t
+    :init
+    (setq conda-anaconda-home (expand-file-name "~/miniconda3"))
+    (setq conda-env-home-directory (expand-file-name "~/miniconda3")))
 
+  ;;get current environment--from environment variable CONDA_DEFAULT_ENV
+  (conda-env-activate (getenv "CONDA_DEFAULT_ENV"))
+  ;;(conda-env-autoactivate-mode t)
+  ;;
+
+
+#+end_src
+
+
+* Eglot
+#+begin_src emacs-lisp
+
+(use-package eglot
+  :ensure t)
+
+#+end_src
+
+#+begin_src emacs-lisp
+  (message "set modeline for conda")
+  (setq-default mode-line-format (cons (format "(%s)" conda-env-current-name)  mode-line-format))
+#+end_src
+
+
+
+
+#+begin_src emacs-lisp
+(message "end of conf.org")
+#+end_src

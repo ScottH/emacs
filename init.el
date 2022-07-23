@@ -5,8 +5,10 @@
 
 ;;; Code:
 
-(message "Running emacs config file.")
-
+(message "Start of init.el")
+;; Do this here to avoid issues with conf.org
+(setq vc-follow-symlinks t) ;; dont bug me about symlinks
+(message "Running org-babel-load-file")
 (org-babel-load-file (expand-file-name "conf.org" user-emacs-directory))
 
 
@@ -16,146 +18,17 @@
   (setenv "PATH" path)
   (setq exec-path (split-string path path-separator)))
 
-;; Basics
-(setq inhibit-startup-message t)
-(scroll-bar-mode -1)
-(set-fringe-mode 10)
-(tool-bar-mode -1)
-(setq visible-bell t)
-
-(setq vc-follow-symlinks t) ;; dont bug me about symlinks
-(recentf-mode 1) ;; give me a list of recently visited files
-(setq history-length 50) ;; remember 50 minibuffer entries
-(savehist-mode 1) ;; save my minibuffer history
-(save-place-mode 1) ;; go back to previous location in files
-(global-auto-revert-mode 1) ;; track changes on disk
-
-;; Keep all the custom var separate
-(setq custom-file (locate-user-emacs-file "custom-vars.el"))
-(load custom-file 'noerror 'nomessage)
 
 
 ;; See: https://superuser.com/questions/364575/rebinding-s-mouse-1-to-mouse-2-in-emacs-on-os-x/1236645#1236645
 (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>"))
 
-;; Package
-(require 'package)
-
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
-
-(package-initialize)
-
-(unless package-archive-contents
-  (package-refresh-contents))
-
-;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
-
-;; use-package
-(require 'use-package)
-(setq use-package-always-ensure t)
-
-(use-package auto-package-update
-  :custom
-  (auto-package-update-interval 7)
-  (auto-package-update-prompt-before-update t)
-  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe)
-  (auto-package-update-at-time "09:00"))
-
-;; Theme stuff
-
-;; Pick a doom theme here
-(use-package all-the-icons)
-
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-ayu-dark t)
-
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  ;;(doom-themes-neotree-config)
-  ;; or for treemacs users
-  ;;(setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  ;;(doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
 
 
 
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
-
-;; Line numbering
-(column-number-mode)
-(global-display-line-numbers-mode t)
-
-;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                treemacs-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-
-;; org-mode
-
-(use-package org
-  :mode (("\\.org$" . org-mode))
-  :ensure org-plus-contrib
-  :config
-  ;;(progn
-    ;; config stuff
-  )
-
-;; don't display images at full size
-(setq org-image-actual-width nil)
-
-;; Nice bullets for org
-  (use-package org-superstar
-      :config
-      (setq org-superstar-special-todo-items t)
-      (add-hook 'org-mode-hook (lambda ()
-                                 (org-superstar-mode 1))))
 
 
 
-;; org roam
-
-(use-package org-roam
-  :ensure t
-  :custom
-  (org-roam-directory "~/Documents/repos/roam")
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-	 ("C-c n f" . org-roam-node-find)
-	 ("C-c n i" . org-roam-node-insert))
-	 :config
-	 (org-roam-setup))
-
-;; Integration with conda
-
-(use-package conda
-  :ensure t
-  :init
-  (setq conda-anaconda-home (expand-file-name "~/miniconda3"))
-  (setq conda-env-home-directory (expand-file-name "~/miniconda3")))
-
-;;get current environment--from environment variable CONDA_DEFAULT_ENV
-(conda-env-activate (getenv "CONDA_DEFAULT_ENV"))
-;;(conda-env-autoactivate-mode t)
-;;
-(setq-default mode-line-format (cons '(:exec conda-env-current-name)  mode-line-format))
 
 ;; lsp mode
 
@@ -180,9 +53,6 @@
 
 
 ;; eglot
-
-(use-package eglot
-  :ensure t)
 
 ;; treemacs - copied from the repo docs
 
@@ -565,3 +435,4 @@
 ;;(setq inferior-lisp-program "/usr/local/bin/clisp")
 ;;; .emacs ends here
 
+(message "End of init.el")
