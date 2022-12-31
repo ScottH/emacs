@@ -51,7 +51,7 @@
 
 #+begin_src emacs-lisp
   (message "Basic customizations")
-  
+  (hl-line-mode t)
   (setq inhibit-startup-message t)
   (scroll-bar-mode -1)
   (set-fringe-mode 10)
@@ -134,31 +134,42 @@
 
 * org mode
 #+begin_src emacs-lisp
-(message "set up org-mode")
+       (message "set up org-mode")
 
-(use-package org
-  :mode (("\\.org$" . org-mode))
-  :ensure org-plus-contrib
-  :config
-  ;;(progn
-    ;; config stuff
-  )
+       (use-package org
+	 :mode (("\\.org$" . org-mode))
+	 :ensure org-plus-contrib
+	 :config
+	 ;;(progn
+	   ;; config stuff
+	 )
 
-;; don't display images at full size
-(setq org-image-actual-width nil)
+       ;; don't display images at full size
+       (setq org-image-actual-width nil)
 
-;; Nice bullets for org
-  (use-package org-superstar
-      :config
-      (setq org-superstar-special-todo-items t)
-      (add-hook 'org-mode-hook (lambda ()
-                                 (org-superstar-mode 1))))
+       ;; Nice bullets for org
+	 (use-package org-superstar
+	     :config
+	     (setq org-superstar-special-todo-items t)
+	     (add-hook 'org-mode-hook (lambda ()
+					(org-superstar-mode 1))))
 
+
+    (defun srh/org-confirm-babel-evaluate (lang body)
+    (not (or (string= lang "latex")
+	     (string= lang "maxima")
+	     (string= lang "emacs-lisp")
+	     (string= lang "python")
+	     )))
+  (setq org-confirm-babel-evaluate 'srh/org-confirm-babel-evaluate)
+
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((python . t)))
 
 #+end_src
 
 #+RESULTS:
-: t
 
 
 
