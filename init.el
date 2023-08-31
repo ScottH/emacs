@@ -8,6 +8,30 @@
 (message "Start of init.el")
 ;; Do this here to avoid issues with conf.org
 (setq vc-follow-symlinks t) ;; dont bug me about symlinks
+
+;; Gotta load org here since org is built in and will clash with loaded org later
+
+;; Install straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+  
+; Install org early before builtin version gets loaded
+(straight-use-package  'org)
+
+
+
+
+
 (message "Running org-babel-load-file")
 (org-babel-load-file (expand-file-name "conf.org" user-emacs-directory))
 
@@ -78,7 +102,7 @@
           treemacs-find-workspace-method           'find-for-file-or-pick-first
           treemacs-git-command-pipe                ""
           treemacs-goto-tag-strategy               'refetch-index
-          treemacs-header-scroll-indicators        '(nil . "^^^^^^")'
+          ;;treemacs-header-scroll-indicators        '(nil . "^^^^^^")'
           treemacs-hide-dot-git-directory          t
           treemacs-indentation                     2
           treemacs-indentation-string              " "
@@ -133,7 +157,9 @@
       (`(t . _)
        (treemacs-git-mode 'simple)))
 
-    (treemacs-hide-gitignored-files-mode nil))
+
+    ;;(treemacs-hide-gitignored-files-mode nil)
+    )
   :bind
   (:map global-map
         ("M-0"       . treemacs-select-window)
@@ -236,7 +262,7 @@
   (elpy-enable))
 
 
-(setq elpy-rpc-python-command "/Users/scott/miniconda3/bin/python")
+(setq elpy-rpc-python-command "python3")
 (setq elpy-rpc-virtualenv-path 'current)
 
 ;; flycheck
