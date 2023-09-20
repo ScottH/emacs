@@ -1,12 +1,11 @@
+* tangle everything
+#+PROPERTY: header-args :tangle yes
+
 * Emacs customization in org mode
-dumb change 
 
 #+begin_src emacs-lisp
 (message "Running tangled conf.org")
 #+end_src
-
-* tangle everything
-#+PROPERTY: header-args :tangle yes
 
 * Org mode fix
 #+begin_src emacs-lisp
@@ -76,7 +75,7 @@ dumb change
   (set-fringe-mode 10)
   (tool-bar-mode -1)
   (setq visible-bell t)
-  (setq hl-line-mode 1)
+  (setq hl-line-mode t)
 
   (recentf-mode 1) ;; give me a list of recently visited files
   ;; TODO make the list of files longer!
@@ -88,7 +87,6 @@ dumb change
   (desktop-save-mode 1)
   
 #+end_src
-
 
 * Dont pollute the init.el with custom variabels at the end of the file
 #+begin_src emacs-lisp
@@ -308,9 +306,7 @@ dumb change
 
 #+end_src
 
-
 * enable shift selection of regions
-
 #+begin_src emacs-lisp
   (setq org-support-shift-select t)
 #+end_src
@@ -332,11 +328,9 @@ dumb change
 #+end_src
 
 * org tempo
-
 Set up shortcuts for code blocks
 - emacs-lisp
 - python
-
 #+begin_src emacs-lisp 
   (require 'org-tempo)
 
@@ -375,8 +369,6 @@ Set up shortcuts for code blocks
   (conda-env-activate (getenv "CONDA_DEFAULT_ENV"))
   ;;(conda-env-autoactivate-mode t)
   ;;
-
-
 #+end_src
 
 
@@ -400,7 +392,6 @@ Set up shortcuts for code blocks
 - lsp-ivy
 
 ** Projectile
-
 #+begin_src emacs-lisp
   ;; (use-package projectile
   ;;   :diminish projectile-mode
@@ -421,7 +412,6 @@ Set up shortcuts for code blocks
 
 ** LSP
 from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
-
 #+begin_src emacs-lisp
 
 	  (require 'package)
@@ -477,7 +467,6 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 #+end_src
 
 * Git gutter
-
 #+begin_src emacs-lisp
     (use-package git-gutter
     :hook (prog-mode . git-gutter-mode)
@@ -495,7 +484,6 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 #+end_src
 
 * indent highlights
-
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 
