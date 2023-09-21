@@ -43,6 +43,34 @@
 #+RESULTS:
 : t
 
+
+* Org babel
+#+begin_src emacs-lisp
+   (add-to-list 'org-src-lang-modes '("racket" . geiser))
+
+   (add-to-list 'load-path "~/Documents/otherrepos/emacs-ob-racket")
+
+  (use-package ob-racket)
+
+  (org-babel-do-load-languages
+  'org-babel-load-languages
+  '((emacs-lisp . t)
+    (racket . t)
+    ;;(scribble . t) ;; if Scribble support is available
+    ))
+
+
+  (defun my-org-confirm-babel-evaluate (lang body)
+  (not (member lang '("python" "racket" "emacs-lisp"))))
+
+(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+
+#+end_src
+
+#+RESULTS:
+: my-org-confirm-babel-evaluate
+
+
 * Set up package manager and archives
 
 #+begin_src emacs-lisp
@@ -203,10 +231,6 @@
 
 #+end_src
 
-#+RESULTS:
-: t
-
-
 
 - enable shift selection of regions
 
@@ -238,22 +262,32 @@ Set up shortcuts for code blocks
 - python
 
 #+begin_src emacs-lisp 
-  ;; (require 'org-tempo)
+  (require 'org-tempo)
 
-  ;; (tempo-define-template "inline-elisp" ; just some name for the template
-  ;; 	     '("#+begin_src emacs-lisp" n p n
-  ;; 	       "#+end_src" n)
-  ;; 	     "<el"
-  ;; 	     "Insert emacs-lisp code block" ; documentation
-  ;; 	     'org-tempo-tags)
+  (tempo-define-template "inline-elisp" ; just some name for the template
+	       '("#+begin_src emacs-lisp" n p n
+		 "#+end_src" n)
+	       "<el"
+	       "Insert emacs-lisp code block" ; documentation
+	       'org-tempo-tags)
 
-  ;;  (tempo-define-template "inline-python" ; just some name for the template
-  ;; 			'("#+begin_src python" n p n
-  ;; 	       "#+end_src" n)
-  ;; 	     "<py"
-  ;; 	     "Insert python code block" ; documentation
-  ;; 	     'org-tempo-tags) 
+   (tempo-define-template "inline-python" ; just some name for the template
+			  '("#+begin_src python" n p n
+		 "#+end_src" n)
+	       "<py"
+	       "Insert python code block" ; documentation
+	       'org-tempo-tags) 
+
+  (tempo-define-template "inline-racket-sicp" ; just some name for the template
+			  '("#+begin_src racket :lang sicp" n p n
+		 "#+end_src" n)
+	       "<rs"
+	       "Insert racket sicp code block" ; documentation
+	       'org-tempo-tags) 
 #+end_src
+
+#+RESULTS:
+: tempo-template-inline-racket-sicp
 
 * Conda integration
 #+begin_src emacs-lisp
