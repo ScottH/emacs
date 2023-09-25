@@ -1,14 +1,14 @@
 * tangle everything
 #+PROPERTY: header-args :tangle yes
 
-* Emacs customization in org mode
+* Emacs setup
 
 #+begin_src emacs-lisp
 (message "Running tangled conf.org")
 #+end_src
 
 
-* emacs 29 basics for python from here: https://www.youtube.com/watch?v=SbTzIt6rISg
+* Emacs 29 basics for python from here: https://www.youtube.com/watch?v=SbTzIt6rISg
 
 #+begin_src emacs-lisp
     (use-package python
@@ -37,38 +37,54 @@
     (setq conda-env-home-directory
 	  (expand-file-name "~/miniconda3"))
     )
-  #+end_src
+#+end_src
 
+* Racket
+
+#+begin_src emacs-lisp
+(add-hook 'racket-mode-hook 'enable-pretty-lambdas)
+(add-hook 'racket-repl-mode-hook 'enable-pretty-lambdas)
+#+end_src
 
 #+RESULTS:
-: t
-
+| enable-pretty-lambdas |
 
 * Org babel
-#+begin_src emacs-lisp
-   (add-to-list 'org-src-lang-modes '("racket" . geiser))
 
-   (add-to-list 'load-path "~/Documents/otherrepos/emacs-ob-racket")
+#+begin_src emacs-lisp
+  ;;(add-to-list 'org-src-lang-modes '("racket" . geiser))
+  (use-package racket-mode)
+
+  (add-to-list 'load-path "~/Documents/otherrepos/emacs-ob-racket")
 
   (use-package ob-racket)
 
   (org-babel-do-load-languages
-  'org-babel-load-languages
-  '((emacs-lisp . t)
-    (racket . t)
-    ;;(scribble . t) ;; if Scribble support is available
-    ))
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (racket . t)
+     ;;(scribble . t) ;; if Scribble support is available
+     ))
 
 
   (defun my-org-confirm-babel-evaluate (lang body)
-  (not (member lang '("python" "racket" "emacs-lisp"))))
+    (not (member lang '("python" "racket" "emacs-lisp"))))
 
-(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
 #+end_src
 
 #+RESULTS:
 : my-org-confirm-babel-evaluate
+
+* Rainbow delimeters
+#+begin_src emacs-lisp
+;;  (use-package rainbow-delimeters)	
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+#+end_src
+
+#+RESULTS:
+| rainbow-delimiters-mode |
 
 
 * Set up package manager and archives
