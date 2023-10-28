@@ -1,37 +1,15 @@
-* tangle everything
-#+PROPERTY: header-args :tangle yes
+* Tangle everything, no results output to file
+#+PROPERTY: header-args :tangle yes :results silent
 
-* Emacs customization in org mode
-
-#+begin_src emacs-lisp
+* Emacs setup in org
+** Mesage to let me know it's running
+#+begin_src emacs-lisp :results silent
 (message "Running tangled conf.org")
 #+end_src
 
-#+RESULTS:
-: Running tangled conf.org
 
-* Org mode fix
-#+begin_src emacs-lisp
-  ;; Install straight.el
-  ;; (defvar bootstrap-version)
-  ;; (let ((bootstrap-file
-  ;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-  ;;       (bootstrap-version 5))
-  ;;   (unless (file-exists-p bootstrap-file)
-  ;;     (with-current-buffer
-  ;;         (url-retrieve-synchronously
-  ;;          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-  ;;          'silent 'inhibit-cookies)
-  ;;       (goto-char (point-max))
-  ;;       (eval-print-last-sexp)))
-  ;;   (load bootstrap-file nil 'nomessage))
-  
-  ;; ; Install org early before builtin version gets loaded
-  ;; (straight-use-package  'org)
-#+end_src
-
-* Set up package manager and archives
-
+* Preliminaries
+** Set up package manager and archives
 #+begin_src emacs-lisp
   (message "Set up package")
   (require 'package)
@@ -47,10 +25,8 @@
   (unless package-archive-contents (package-refresh-contents))
 #+end_src
 
-#+RESULTS:
-
-* Setup use-package
-#+begin_src emacs-lisp
+** Setup use-package
+#+begin_src emacs-lisp 
   (message "Set up use-package")
   ;; Initialize use-package on non-Linux platforms
   (unless (package-installed-p 'use-package)
@@ -70,12 +46,10 @@
     (auto-package-update-at-time "09:00"))
 #+end_src
 
-#+RESULTS:
-: t
 
 * Basic customizations
-
-#+begin_src emacs-lisp
+** Emacs settings
+#+begin_src emacs-lisp 
   (message "Basic customizations")
 
   (setq inhibit-startup-message t)
@@ -96,72 +70,33 @@
   (global-display-line-numbers-mode 1) ;; Enable line numbers globally
 #+end_src
 
-#+RESULTS:
-: t
-
-* org mode
-#+begin_src emacs-lisp
-	    (message "set up org-mode")
-
-	    (use-package org
-	      :ensure t
-	      :mode (("\\.org$" . org-mode)) )
-		      ;;org-plus-contrib
-
-
-	    ;; don't display images at full size
-      (setq org-image-actual-width nil)
-
-      ;; Nice bullets for org
-  (use-package org-superstar
-    :config
-   (setq org-superstar-special-todo-items t)
-   (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
-
-
-#+end_src
-
-#+RESULTS:
-: t
-
-
-* Fix
-#+begin_src emacs-lisp
-      (use-package vterm
-	  :ensure t)
-
-      (use-package magit
-	:ensure t)
-
-      (require 'recentf)
-      (recentf-mode 1)
-      (setq recentf-max-menu-items 40)
-      (global-set-key (kbd "C-x r") 'recentf-open-files)
-
-      (setq initial-buffer-choice #'recentf-open-files)
-
-    ;;(require 'python-isort)
-    ;;(add-hook 'python-mode-hook 'python-isort-on-save-mode)
-    ;;(add-hook 'python-mode-hook 'blacken-mode)
-    (setq blacken-line-length 100)
-  (progn (require 'linum) (global-linum-mode 0))
-#+end_src
-
-#+RESULTS:
-
-* Dont pollute the init.el with custom variables at the end of the file
-#+begin_src emacs-lisp
+** Dont pollute the init.el with custom variables at the end of the file
+#+begin_src emacs-lisp 
   (message "Set up separate custom var file")
   ;; Keep all the custom var separate
     (setq custom-file (locate-user-emacs-file "custom-vars.el"))
     (load custom-file 'noerror 'nomessage)
 #+end_src
 
-#+RESULTS:
-: t
+** Enable shift selection of regions
+#+begin_src emacs-lisp
+  (setq org-support-shift-select t)
+#+end_src
+
+** Recent files shortcut 
+#+begin_src emacs-lisp
+  (require 'recentf)
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 40)
+  (global-set-key (kbd "C-x r") 'recentf-open-files)
+
+  (setq initial-buffer-choice #'recentf-open-files)
+#+end_src
+
 
 * Theme
-#+begin_src emacs-lisp
+** Doom stuff
+#+begin_src emacs-lisp 
     (set-frame-font "JetBrains Mono 14" nil t)
 
 ;;      (setq doom-font (font-spec :family "JetBrains Mono" :size 13)
@@ -211,10 +146,7 @@
 	  :custom ((doom-modeline-height 15)))
 #+end_src
 
-#+RESULTS:
-
-* Modus vivendi
-
+** Modus vivendi
 #+begin_src emacs-lisp
   ;;   ;;; For packaged versions which must use `require':
   ;; (use-package modus-themes
@@ -234,11 +166,8 @@
   ;;   :bind ("<f5>" . modus-themes-toggle))
 #+end_src
 
-#+RESULTS:
-
-* ef-themes
-
-#+begin_src emacs-lisp
+** ef-themes
+#+begin_src emacs-lisp 
     ;; Make customisations that affect Emacs faces BEFORE loading a theme
     ;; (any change needs a theme re-load to take effect).
     (require 'ef-themes)
@@ -292,15 +221,138 @@
     ;; - `ef-themes-load-random'
     ;; - `ef-themes-preview-colors'
     ;; - `ef-themes-preview-colors-current'
+#+end_src
 
+
+* Org stuff
+** Org mode fix
+#+begin_src emacs-lisp
+  ;; Install straight.el
+  ;; (defvar bootstrap-version)
+  ;; (let ((bootstrap-file
+  ;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+  ;;       (bootstrap-version 5))
+  ;;   (unless (file-exists-p bootstrap-file)
+  ;;     (with-current-buffer
+  ;;         (url-retrieve-synchronously
+  ;;          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+  ;;          'silent 'inhibit-cookies)
+  ;;       (goto-char (point-max))
+  ;;       (eval-print-last-sexp)))
+  ;;   (load bootstrap-file nil 'nomessage))
+  
+  ;; ; Install org early before builtin version gets loaded
+  ;; (straight-use-package  'org)
+#+end_src
+
+** org mode
+#+begin_src emacs-lisp :results silent
+  (message "set up org-mode")
+
+  (use-package org
+    :ensure t
+    :mode (("\\.org$" . org-mode)) )
+  ;;org-plus-contrib
+
+
+  ;; don't display images at full size
+  (setq org-image-actual-width nil)
+
+  ;; Nice bullets for org
+  (use-package org-superstar
+    :config
+    (setq org-superstar-special-todo-items t)
+    (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+#+end_src
+
+** Org babel permissions
+#+begin_src emacs-lisp
+
+(defun my-org-confirm-babel-evaluate (lang body)
+    (not (or (string= lang "python")
+	     (string= lang "emacs-lisp")
+	     (string= lang "scheme")
+	     (string= lang "racket")
+	     )
+	 )
+    )
+
+(setq org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
 
 #+end_src
 
-#+RESULTS:
-: t
-
-* Python
+** org roam
 #+begin_src emacs-lisp
+    ;; org roam
+
+    (use-package org-roam
+      :ensure t
+      :custom
+      (org-roam-directory "~/Documents/repos/roam")
+      :bind (("C-c n l" . org-roam-buffer-toggle)
+	     ("C-c n f" . org-roam-node-find)
+	     ("C-c n i" . org-roam-node-insert))
+      :config
+	     (org-roam-setup))
+
+#+end_src
+
+** org tempo
+Set up shortcuts for code blocks
+- emacs-lisp
+- python
+#+begin_src emacs-lisp 
+  (require 'org-tempo)
+
+(tempo-define-template "inline-elisp" ; just some name for the template
+	     '("#+begin_src emacs-lisp" n p n
+	       "#+end_src" n)
+	     "<el"
+	     "Insert emacs-lisp code block" ; documentation
+	     'org-tempo-tags)
+
+ (tempo-define-template "inline-python" ; just some name for the template
+			'("#+begin_src python" n p n
+	       "#+end_src" n)
+	     "<py"
+	     "Insert python code block" ; documentation
+	     'org-tempo-tags) 
+
+(tempo-define-template "inline-racket-sicp" ; just some name for the template
+			'("#+begin_src racket :lang sicp" n p n
+	       "#+end_src" n)
+	     "<rs"
+	     "Insert racket sicp code block" ; documentation
+	     'org-tempo-tags)
+
+#+end_src
+
+
+* Fix me!!
+#+begin_src emacs-lisp :results silent
+  (use-package vterm
+    :ensure t)
+
+  (use-package magit
+    :ensure t)
+
+  (require 'recentf)
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 40)
+  (global-set-key (kbd "C-x r") 'recentf-open-files)
+
+  (setq initial-buffer-choice #'recentf-open-files)
+
+  ;;(require 'python-isort)
+  ;;(add-hook 'python-mode-hook 'python-isort-on-save-mode)
+  ;;(add-hook 'python-mode-hook 'blacken-mode)
+  (setq blacken-line-length 100)
+  (progn (require 'linum) (global-linum-mode 0))
+#+end_src
+
+* Programming
+** Python
+#+begin_src emacs-lisp 
   (use-package elpy
     :ensure t
     :init
@@ -348,25 +400,17 @@
      :bind (
 
 		 ("C-c t" . elpy-test))
-
     )
-
 #+end_src
 
-#+RESULTS:
-: elpy-test
-
-* Lisp
-#+begin_src emacs-lisp
+** Lisp
+#+begin_src emacs-lisp 
 (use-package sly
   :ensure t)
 #+end_src
 
-#+RESULTS:
-
-* Racket
+** Racket
 #+begin_src emacs-lisp
-
     ;;(add-hook 'racket-mode-hook 'enable-pretty-lambdas)
     ;;(add-hook 'racket-repl-mode-hook 'enable-pretty-lambdas)
 
@@ -390,36 +434,11 @@
      (python . t)
      ;;(scribble . t) ;; if Scribble support is available
      ))
-
-
      ;;(defun my-org-confirm-babel-evaluate (lang body)
     ;; ;;  (not (member lang '("python" "racket" "emacs-lisp"))))
-
 #+end_src
 
-#+RESULTS:
-
-* Org babel permissions
-#+begin_src emacs-lisp
-
-(defun my-org-confirm-babel-evaluate (lang body)
-    (not (or (string= lang "python")
-	     (string= lang "emacs-lisp")
-	     (string= lang "scheme")
-	     (string= lang "racket")
-	     )
-	 )
-    )
-
-(setq org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
-
-#+end_src
-
-#+RESULTS:
-: my-org-confirm-babel-evaluate
-
-
-* Line numbering
+** Line numbering
 #+begin_src emacs-lisp
 
   (message "Set up line numbering")
@@ -438,9 +457,9 @@
 
 #+end_src
 
-#+RESULTS:
+** Ligatures
+These don't seem to work. Test them someday
 
-* Ligatures
 #+begin_src emacs-lisp
   (use-package ligature
   :config
@@ -466,83 +485,16 @@
   ;; Enables ligature checks globally in all buffers.  You can also do it
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
-
 #+end_src
 
-#+RESULTS:
-: t
-
-
+** Company mode
 #+begin_src emacs-lisp
   (use-package company
   :config (setq company-global-modes '(not org-mode))
   )
 #+end_src
 
-#+RESULTS:
-: t
-
-* enable shift selection of regions
-#+begin_src emacs-lisp
-  (setq org-support-shift-select t)
-#+end_src
-
-#+RESULTS:
-: t
-
-* org roam
-#+begin_src emacs-lisp
-    ;; org roam
-
-    (use-package org-roam
-      :ensure t
-      :custom
-      (org-roam-directory "~/Documents/repos/roam")
-      :bind (("C-c n l" . org-roam-buffer-toggle)
-	     ("C-c n f" . org-roam-node-find)
-	     ("C-c n i" . org-roam-node-insert))
-      :config
-	     (org-roam-setup))
-
-#+end_src
-
-#+RESULTS:
-: org-roam-node-insert
-
-* org tempo
-Set up shortcuts for code blocks
-- emacs-lisp
-- python
-#+begin_src emacs-lisp 
-  (require 'org-tempo)
-
-(tempo-define-template "inline-elisp" ; just some name for the template
-	     '("#+begin_src emacs-lisp" n p n
-	       "#+end_src" n)
-	     "<el"
-	     "Insert emacs-lisp code block" ; documentation
-	     'org-tempo-tags)
-
- (tempo-define-template "inline-python" ; just some name for the template
-			'("#+begin_src python" n p n
-	       "#+end_src" n)
-	     "<py"
-	     "Insert python code block" ; documentation
-	     'org-tempo-tags) 
-
-(tempo-define-template "inline-racket-sicp" ; just some name for the template
-			'("#+begin_src racket :lang sicp" n p n
-	       "#+end_src" n)
-	     "<rs"
-	     "Insert racket sicp code block" ; documentation
-	     'org-tempo-tags)
-
-#+end_src
-
-#+RESULTS:
-: tempo-template-inline-racket-sicp
-
-* Conda integration
+** Conda integration
 #+begin_src emacs-lisp
   (message "Loading conda integration")
   (use-package conda
@@ -556,30 +508,19 @@ Set up shortcuts for code blocks
   ;;(conda-env-autoactivate-mode t)
   ;;
   (setq-default mode-line-format (cons (format "env:(%s)" conda-env-current-name)  mode-line-format))
-#+end_src
-
-#+RESULTS:
-| env:(base) | %e | (:eval (doom-modeline-format--main)) |
-
-
-* Eglot
-#+begin_src emacs-lisp
-
-(use-package eglot
-  :ensure t)
-
-#+end_src
-
-#+RESULTS:
-
-#+begin_src emacs-lisp
   ;;(message "set modeline for conda")
   ;;(setq-default mode-line-format (cons (format "(%s)" conda-env-current-name)  mode-line-format))
+
+
+  #+end_src
+
+** Eglot
+#+begin_src emacs-lisp
+(use-package eglot
+  :ensure t)
 #+end_src
 
-#+RESULTS:
-
-* C++ development
+** C++ development
 - lsp-mode
 - projectile
 - company-bpx
@@ -603,8 +544,7 @@ Set up shortcuts for code blocks
   ;;   :config (counsel-projectile-mode))
 #+end_src
 
-
-** LSP
+** LSP - not enabled
 from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 #+begin_src emacs-lisp
     ;; comment out for now
@@ -659,9 +599,7 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 
 #+end_src
 
-#+RESULTS:
-
-* Git gutter
+** Git gutter
 #+begin_src emacs-lisp
     (use-package git-gutter
     :hook (prog-mode . git-gutter-mode)
@@ -673,13 +611,9 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
     (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
-
 #+end_src
 
-#+RESULTS:
-: t
-
-* Ivy
+** Ivy
 #+begin_src emacs-lisp
 ;; Let's try ivy
 (use-package ivy
@@ -721,16 +655,9 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
   (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
   :config
   (counsel-mode 1))
-
-
-
 #+end_src
 
-#+RESULTS:
-: counsel-minibuffer-history
-
-
-* indent highlights
+** indent highlights
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 
@@ -742,66 +669,32 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
   (setq highlight-indent-guides-responsive "top")
 #+end_src
 
-#+RESULTS:
-: top
-
-
-* Add racket to org mode
+** Add racket to org mode - just notes
 #+begin_src emacs-lisp
   ;; (org-babel-do-load-languages
   ;;  'org-babel-load-languages
   ;;  '((scheme . t)
   ;;    ;;(racket . t)
   ;;    ))
-
 #+end_src
 
-#+RESULTS:
-
-#+RESULTS:
-: my-org-confirm-babel-evaluate
-
-
-* Recent files shortcut 
-#+begin_src emacs-lisp
-  (require 'recentf)
-  (recentf-mode 1)
-  (setq recentf-max-menu-items 40)
-  (global-set-key (kbd "C-x r") 'recentf-open-files)
-
-  (setq initial-buffer-choice #'recentf-open-files)
-#+end_src
-
-#+RESULTS:
-: recentf-open-files
-
-* python code formatting
-
+** python code formatting - just notes
 #+begin_src emacs-lisp
   ;;(require 'python-isort)
   ;;(add-hook 'python-mode-hook 'python-isort-on-save-mode)
   ;;(add-hook 'python-mode-hook 'blacken-mode)
   ;;(setq blacken-line-length 100)
-
-
 #+end_src
 
-
-* Rainbow delimiters
+** Rainbow delimiters
 #+begin_src emacs-lisp
-
 (use-package rainbow-delimiters
   :ensure t
   :hook ((prog-mode .  rainbow-delimiters-mode))
   )
-
 #+end_src
 
-#+RESULTS:
-| rainbow-delimiters-mode | highlight-indent-guides-mode | git-gutter-mode |
-
-
-* fci mode for code
+** fci mode for code
 #+begin_src emacs-lisp
   (use-package fill-column-indicator
   :ensure t)
@@ -811,16 +704,9 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 
 (add-hook 'python-mode-hook 'fci-mode)
 (add-hook 'c-mode-hook 'fci-mode)
-
-
 #+end_src
 
-#+RESULTS:
-| fci-mode | lsp |
-
-
-* Tramp
-
+** Tramp
 copied from:
 https://github.com/doomemacs/doomemacs/issues/3909
 
@@ -836,9 +722,7 @@ https://github.com/doomemacs/doomemacs/issues/3909
   ;;   (setq tramp-verbose 1))
 #+end_src
 
-#+RESULTS:
-| python-isort-on-save-mode | yasnippet-snippets--fixed-indent | elpy-mode | doom-modeline-env-setup-python |
-
+** Treemacs - not enabled
 #+begin_src emacs-lisp
 
     ;; ;; treemacs - copied from the repo docs
