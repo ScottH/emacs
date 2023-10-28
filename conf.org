@@ -7,6 +7,9 @@
 (message "Running tangled conf.org")
 #+end_src
 
+#+RESULTS:
+: Running tangled conf.org
+
 * Org mode fix
 #+begin_src emacs-lisp
   ;; Install straight.el
@@ -36,13 +39,15 @@
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
 			   ;;("org" . "https://orgmode.org/elpa/")
 			   ("elpa" . "https://elpa.gnu.org/packages/")
-			   ("org" . "http://orgmode.org/elpa/")
+			   ;;("org" . "http://orgmode.org/elpa/")
 			   ))
 
   (package-initialize)
 
   (unless package-archive-contents (package-refresh-contents))
 #+end_src
+
+#+RESULTS:
 
 * Setup use-package
 #+begin_src emacs-lisp
@@ -65,6 +70,9 @@
     (auto-package-update-at-time "09:00"))
 #+end_src
 
+#+RESULTS:
+: t
+
 * Basic customizations
 
 #+begin_src emacs-lisp
@@ -85,10 +93,63 @@
   (save-place-mode 1) ;; go back to previous location in files
   (global-auto-revert-mode 1) ;; track changes on disk
   (desktop-save-mode 1)
-  
+  (global-display-line-numbers-mode 1) ;; Enable line numbers globally
 #+end_src
 
-* Dont pollute the init.el with custom variabels at the end of the file
+#+RESULTS:
+: t
+
+* org mode
+#+begin_src emacs-lisp
+	    (message "set up org-mode")
+
+	    (use-package org
+	      :ensure t
+	      :mode (("\\.org$" . org-mode)) )
+		      ;;org-plus-contrib
+
+
+	    ;; don't display images at full size
+      (setq org-image-actual-width nil)
+
+      ;; Nice bullets for org
+  (use-package org-superstar
+    :config
+   (setq org-superstar-special-todo-items t)
+   (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+
+
+#+end_src
+
+#+RESULTS:
+: t
+
+
+* Fix
+#+begin_src emacs-lisp
+      (use-package vterm
+	  :ensure t)
+
+      (use-package magit
+	:ensure t)
+
+      (require 'recentf)
+      (recentf-mode 1)
+      (setq recentf-max-menu-items 40)
+      (global-set-key (kbd "C-x r") 'recentf-open-files)
+
+      (setq initial-buffer-choice #'recentf-open-files)
+
+    ;;(require 'python-isort)
+    ;;(add-hook 'python-mode-hook 'python-isort-on-save-mode)
+    ;;(add-hook 'python-mode-hook 'blacken-mode)
+    (setq blacken-line-length 100)
+  (progn (require 'linum) (global-linum-mode 0))
+#+end_src
+
+#+RESULTS:
+
+* Dont pollute the init.el with custom variables at the end of the file
 #+begin_src emacs-lisp
   (message "Set up separate custom var file")
   ;; Keep all the custom var separate
@@ -96,14 +157,17 @@
     (load custom-file 'noerror 'nomessage)
 #+end_src
 
+#+RESULTS:
+: t
+
 * Theme
 #+begin_src emacs-lisp
-    (set-frame-font "JetBrains Mono 13" nil t)
+    (set-frame-font "JetBrains Mono 14" nil t)
 
-      (setq doom-font (font-spec :family "JetBrains Mono" :size 13)
-	    doom-variable-pitch-font (font-spec :family "sans" :size 14))
+;;      (setq doom-font (font-spec :family "JetBrains Mono" :size 13)
+;;	    doom-variable-pitch-font (font-spec :family "sans" :size 14))
 	;; Pick a doom theme here
-	(message "loading doom theme")
+;;	(message "loading doom theme")
 	(use-package all-the-icons)
 
 	(use-package doom-themes
@@ -123,7 +187,7 @@
 	  ;;
 
 	  ;; Enable flashing mode-line on errors
-	  (doom-themes-visual-bell-config)
+	  ;;(doom-themes-visual-bell-config)
 	  ;; Enable custom neotree theme (all-the-icons must be installed!)
 	  ;;(doom-themes-neotree-config)
 	  ;; or for treemacs users
@@ -142,9 +206,12 @@
   (set-face-attribute 'font-lock-variable-name-face nil  :slant 'italic)
 
 	(use-package doom-modeline
+	  :ensure t
 	  :init (doom-modeline-mode 1)
 	  :custom ((doom-modeline-height 15)))
 #+end_src
+
+#+RESULTS:
 
 * Modus vivendi
 
@@ -166,6 +233,8 @@
   ;;   (modus-themes-load-vivendi)
   ;;   :bind ("<f5>" . modus-themes-toggle))
 #+end_src
+
+#+RESULTS:
 
 * ef-themes
 
@@ -227,7 +296,127 @@
 
 #+end_src
 
+#+RESULTS:
+: t
 
+* Python
+#+begin_src emacs-lisp
+  (use-package elpy
+    :ensure t
+    :init
+    (elpy-enable))
+
+  ;; (use-package python
+  ;;   :ensure t
+  ;;   :hook ((python-ts-mode . eglot-ensure)
+  ;; 	 (python-ts-mode . company-mode))
+  ;;   :mode (("\\.py\\'" . python-ts-mode))
+  ;;   )
+
+  ;; Elpy
+
+
+  (setq elpy-rpc-python-command "python3")
+  (setq elpy-rpc-virtualenv-path 'current)
+
+  ;; flycheck
+  (use-package flycheck
+	       :ensure t
+	       :init (global-flycheck-mode))
+
+
+  (use-package company
+    :ensure t
+    :config
+    (setq company-idle-delay 0.1
+	  company-minimum-prefix-length 1)
+    )
+
+  (setq major-mode-remap-alist
+   '((c++-mode . c++-ts-mode)
+     (c-mode . c-ts-mode)
+     (yaml-mode . yaml-ts-mode)
+     (json-mode . json-ts-mode)))
+
+  (use-package conda
+    :ensure t
+    :config
+    (setq conda-env-home-directory
+	  (expand-file-name "~/miniconda3"))
+    (custom-set-variables
+     '(conda-anaconda-home "/home/scott/miniconda3"))
+     :bind (
+
+		 ("C-c t" . elpy-test))
+
+    )
+
+#+end_src
+
+#+RESULTS:
+: elpy-test
+
+* Lisp
+#+begin_src emacs-lisp
+(use-package sly
+  :ensure t)
+#+end_src
+
+#+RESULTS:
+
+* Racket
+#+begin_src emacs-lisp
+
+    ;;(add-hook 'racket-mode-hook 'enable-pretty-lambdas)
+    ;;(add-hook 'racket-repl-mode-hook 'enable-pretty-lambdas)
+
+    ;;(add-to-list 'org-src-lang-modes '("racket" . geiser))
+     (use-package racket-mode
+       :ensure t)
+
+  ;; on my mac 
+  (add-to-list 'load-path "/home/scott/code/outside/emacs-ob-racket")
+
+  (use-package ob-racket
+    :load-path "/home/scott/code/outside/emacs-ob-racket")
+  
+  ;;(use-package ob-racket
+  ;;:elpaca (:type git :host github :repo "hasu/emacs-ob-racket"))
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (racket . t)
+     (python . t)
+     ;;(scribble . t) ;; if Scribble support is available
+     ))
+
+
+     ;;(defun my-org-confirm-babel-evaluate (lang body)
+    ;; ;;  (not (member lang '("python" "racket" "emacs-lisp"))))
+
+#+end_src
+
+#+RESULTS:
+
+* Org babel permissions
+#+begin_src emacs-lisp
+
+(defun my-org-confirm-babel-evaluate (lang body)
+    (not (or (string= lang "python")
+	     (string= lang "emacs-lisp")
+	     (string= lang "scheme")
+	     (string= lang "racket")
+	     )
+	 )
+    )
+
+(setq org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
+
+#+end_src
+
+#+RESULTS:
+: my-org-confirm-babel-evaluate
 
 
 * Line numbering
@@ -280,6 +469,9 @@
 
 #+end_src
 
+#+RESULTS:
+: t
+
 
 #+begin_src emacs-lisp
   (use-package company
@@ -290,41 +482,13 @@
 #+RESULTS:
 : t
 
-* org mode
-#+begin_src emacs-lisp
-  (message "set up org-mode")
-
-  (use-package org
-    :mode (("\\.org$" . org-mode))
-    :ensure org-plus-contrib
-    :config
-    :straight (:type built-in)
-    ;; not sure this worked
-    ;;:hook (org-mode . company-mode nil)
-    ;;(progn
-      ;; config stuff
-    )
-
-  ;; don't display images at full size
-  (setq org-image-actual-width nil)
-
-  ;; Nice bullets for org
-    (use-package org-superstar
-	:config
-	(setq org-superstar-special-todo-items t)
-	(add-hook 'org-mode-hook (lambda ()
-				   (org-superstar-mode 1))))
-
-
-#+end_src
-
-#+RESULTS:
-: t
-
 * enable shift selection of regions
 #+begin_src emacs-lisp
   (setq org-support-shift-select t)
 #+end_src
+
+#+RESULTS:
+: t
 
 * org roam
 #+begin_src emacs-lisp
@@ -342,6 +506,9 @@
 
 #+end_src
 
+#+RESULTS:
+: org-roam-node-insert
+
 * org tempo
 Set up shortcuts for code blocks
 - emacs-lisp
@@ -349,27 +516,31 @@ Set up shortcuts for code blocks
 #+begin_src emacs-lisp 
   (require 'org-tempo)
 
-  (tempo-define-template "inline-elisp" ; just some name for the template
-	       '("#+begin_src emacs-lisp" n p n
-		 "#+end_src" n)
-	       "<el"
-	       "Insert emacs-lisp code block" ; documentation
-	       'org-tempo-tags)
+(tempo-define-template "inline-elisp" ; just some name for the template
+	     '("#+begin_src emacs-lisp" n p n
+	       "#+end_src" n)
+	     "<el"
+	     "Insert emacs-lisp code block" ; documentation
+	     'org-tempo-tags)
 
-   (tempo-define-template "inline-python" ; just some name for the template
-			  '("#+begin_src python" n p n
-		 "#+end_src" n)
-	       "<py"
-	       "Insert python code block" ; documentation
-	       'org-tempo-tags)
-  
-     (tempo-define-template "inline-scheme" ; just some name for the template
-			  '("#+begin_src scheme" n p n
-		 "#+end_src" n)
-	       "<sc"
-	       "Insert scheme code block" ; documentation
-	       'org-tempo-tags) 
+ (tempo-define-template "inline-python" ; just some name for the template
+			'("#+begin_src python" n p n
+	       "#+end_src" n)
+	     "<py"
+	     "Insert python code block" ; documentation
+	     'org-tempo-tags) 
+
+(tempo-define-template "inline-racket-sicp" ; just some name for the template
+			'("#+begin_src racket :lang sicp" n p n
+	       "#+end_src" n)
+	     "<rs"
+	     "Insert racket sicp code block" ; documentation
+	     'org-tempo-tags)
+
 #+end_src
+
+#+RESULTS:
+: tempo-template-inline-racket-sicp
 
 * Conda integration
 #+begin_src emacs-lisp
@@ -384,7 +555,11 @@ Set up shortcuts for code blocks
   (conda-env-activate (getenv "CONDA_DEFAULT_ENV"))
   ;;(conda-env-autoactivate-mode t)
   ;;
+  (setq-default mode-line-format (cons (format "env:(%s)" conda-env-current-name)  mode-line-format))
 #+end_src
+
+#+RESULTS:
+| env:(base) | %e | (:eval (doom-modeline-format--main)) |
 
 
 * Eglot
@@ -395,10 +570,14 @@ Set up shortcuts for code blocks
 
 #+end_src
 
+#+RESULTS:
+
 #+begin_src emacs-lisp
-  (message "set modeline for conda")
-  (setq-default mode-line-format (cons (format "(%s)" conda-env-current-name)  mode-line-format))
+  ;;(message "set modeline for conda")
+  ;;(setq-default mode-line-format (cons (format "(%s)" conda-env-current-name)  mode-line-format))
 #+end_src
+
+#+RESULTS:
 
 * C++ development
 - lsp-mode
@@ -428,58 +607,59 @@ Set up shortcuts for code blocks
 ** LSP
 from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 #+begin_src emacs-lisp
-
-	  (require 'package)
-	  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-	  ;; (package-initialize)
-
-	  (setq package-selected-packages '(lsp-mode yasnippet lsp-treemacs helm-lsp
-						     ;;projectile
-						     hydra flycheck 
-
-						     avy which-key helm-xref dap-mode))
-
-	  (when (cl-find-if-not #'package-installed-p package-selected-packages)
-	    (package-refresh-contents)
-	    (mapc #'package-install package-selected-packages))
-
-	  ;; ;; sample `helm' configuration use https://github.com/emacs-helm/helm/ for details
-	  ;; (helm-mode)
-	  ;; (require 'helm-xref)
-	  ;; (define-key global-map [remap find-file] #'helm-find-files)
-	  ;; (define-key global-map [remap execute-extended-command] #'helm-M-x)
-	  ;; (define-key global-map [remap switch-to-buffer] #'helm-mini)
-
-	  (which-key-mode)
-	  (add-hook 'c-mode-hook 'lsp)
-	  (add-hook 'c++-mode-hook 'lsp)
-
-	  (setq gc-cons-threshold (* 100 1024 1024)
-		read-process-output-max (* 1024 1024)
-		treemacs-space-between-root-nodes nil
-		company-idle-delay 0.0
-		company-minimum-prefix-length 1
-		lsp-idle-delay 0.1)  ;; clangd is fast
-
-	  (with-eval-after-load 'lsp-mode
-	    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-	    (require 'dap-cpptools)
-	    (yas-global-mode))
+    ;; comment out for now
 
 
-	    ;; (defun efs/lsp-mode-setup ()
-	    ;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-	    ;;   (lsp-headerline-breadcrumb-mode))
+  ;; (require 'package)
 
-	    ;; (use-package lsp-mode
-	    ;;   :commands (lsp lsp-deferred)
-	    ;;   :hook (lsp-mode . efs/lsp-mode-setup)
-	    ;;   :init
-	    ;;   (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
-	    ;;   :config
-	    ;;   (lsp-enable-which-key-integration t))
+  ;; 	    (add-to-list 'package-archives '("melpa"
+  ;; 	    . "http://melpa.org/packages/") t) ;; (package-initialize)
+
+  ;; 	    (setq package-selected-packages '(lsp-mode yasnippet
+  ;; 	lsp-treemacs helm-lsp ;;projectile hydra flycheck
+
+  ;; 						       avy which-key
+  ;; 						       helm-xref
+  ;; 						       dap-mode))
+
+  ;; 	    (when (cl-find-if-not #'package-installed-p
+  ;; 	      package-selected-packages) (package-refresh-contents)
+  ;; 	      (mapc #'package-install package-selected-packages))
+
+  ;; 	    ;; ;; sample `helm' configuration use
+  ;; 	    ;; https://github.com/emacs-helm/helm/ for details
+  ;; 	    ;; (helm-mode) (require 'helm-xref) (define-key global-map
+  ;; 	    ;; [remap find-file] #'helm-find-files) (define-key
+  ;; 	    ;; global-map [remap execute-extended-command] #'helm-M-x)
+  ;; 	    ;; (define-key global-map [remap switch-to-buffer]
+  ;; 	    ;; #'helm-mini)
+
+  ;; 	    (which-key-mode) (add-hook 'c-mode-hook 'lsp) (add-hook
+  ;; 	    'c++-mode-hook 'lsp)
+
+  ;; 	    (setq gc-cons-threshold (* 100 1024 1024)
+  ;; 		  read-process-output-max (* 1024 1024)
+  ;; 		  treemacs-space-between-root-nodes nil
+  ;; 		  company-idle-delay 0.0 company-minimum-prefix-length
+  ;; 		  1 lsp-idle-delay 0.1) ;; clangd is fast
+
+  ;; 	    (with-eval-after-load 'lsp-mode (add-hook 'lsp-mode-hook
+  ;; 	      #'lsp-enable-which-key-integration) (require
+  ;; 	      'dap-cpptools) (yas-global-mode))
+
+    ;; end comment out (defun efs/lsp-mode-setup () (setq
+		;; lsp-headerline-breadcrumb-segments
+		;; '(path-up-to-project file symbols))
+		;; (lsp-headerline-breadcrumb-mode))
+
+		;; (use-package lsp-mode :commands (lsp lsp-deferred)
+		;;   :hook (lsp-mode . efs/lsp-mode-setup) :init (setq
+		;;   lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
+		;;   :config (lsp-enable-which-key-integration t))
 
 #+end_src
+
+#+RESULTS:
 
 * Git gutter
 #+begin_src emacs-lisp
@@ -494,9 +674,61 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
     (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
-  
+#+end_src
+
+#+RESULTS:
+: t
+
+* Ivy
+#+begin_src emacs-lisp
+;; Let's try ivy
+(use-package ivy
+  :ensure t
+  :diminish
+  :bind (("C-s" . swiper)
+	 :map ivy-minibuffer-map
+	 ("TAB" . ivy-alt-done)
+	 ("C-l" . ivy-alt-done)
+	 ;;("C-j" . ivy-next-line)
+	 ;;("C-k" . ivy-previous-line)
+	 :map ivy-switch-buffer-map
+	 ("C-k" . ivy-previous-line)
+	 ("C-l" . ivy-done)
+	 ("C-d" . ivy-switch-buffer-kill)
+	 :map ivy-reverse-i-search-map
+	 ("C-k" . ivy-previous-line)
+	 ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package ivy-rich
+  :ensure t
+  :init
+  (ivy-rich-mode 1))
+
+(use-package which-key
+  :ensure t
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config(setq which-key-idle-delay 0.5))
+
+(use-package counsel
+  :ensure t
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+	 :map minibuffer-local-map
+	 ("C-r" . 'counsel-minibuffer-history))
+  :custom
+  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+  :config
+  (counsel-mode 1))
+
+
 
 #+end_src
+
+#+RESULTS:
+: counsel-minibuffer-history
+
 
 * indent highlights
 #+begin_src emacs-lisp
@@ -510,32 +742,24 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
   (setq highlight-indent-guides-responsive "top")
 #+end_src
 
+#+RESULTS:
+: top
+
 
 * Add racket to org mode
-#+begin_src elisp
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((scheme . t)
-       ;;(racket . t)
-       ))
+#+begin_src emacs-lisp
+  ;; (org-babel-do-load-languages
+  ;;  'org-babel-load-languages
+  ;;  '((scheme . t)
+  ;;    ;;(racket . t)
+  ;;    ))
 
 #+end_src
 
 #+RESULTS:
 
-* Don't ask to eval org babel code blocks
-
-#+begin_src elisp
-    (defun my-org-confirm-babel-evaluate (lang body)
-      (not (or (string= lang "python")
-	       (string= lang "elisp")
-	       (string= lang "scheme")
-	       )
-	   )
-      )
-
-  (setq org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
-#+end_src
+#+RESULTS:
+: my-org-confirm-babel-evaluate
 
 
 * Recent files shortcut 
@@ -548,33 +772,51 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
   (setq initial-buffer-choice #'recentf-open-files)
 #+end_src
 
+#+RESULTS:
+: recentf-open-files
+
 * python code formatting
 
-#+begin_src elisp
-  (require 'python-isort)
-  (add-hook 'python-mode-hook 'python-isort-on-save-mode)
-  (add-hook 'python-mode-hook 'blacken-mode)
-  (setq blacken-line-length 100)
+#+begin_src emacs-lisp
+  ;;(require 'python-isort)
+  ;;(add-hook 'python-mode-hook 'python-isort-on-save-mode)
+  ;;(add-hook 'python-mode-hook 'blacken-mode)
+  ;;(setq blacken-line-length 100)
 
 
 #+end_src
 
+
+* Rainbow delimiters
+#+begin_src emacs-lisp
+
+(use-package rainbow-delimiters
+  :ensure t
+  :hook ((prog-mode .  rainbow-delimiters-mode))
+  )
+
+#+end_src
+
 #+RESULTS:
-: 100
+| rainbow-delimiters-mode | highlight-indent-guides-mode | git-gutter-mode |
+
 
 * fci mode for code
-#+begin_src elisp
-  (require 'fill-column-indicator) 
-  (setq fci-rule-width 1)
-  (setq fci-rule-color "gray")
+#+begin_src emacs-lisp
+  (use-package fill-column-indicator
+  :ensure t)
 
-  (add-hook 'python-mode-hook 'fci-mode)
-  (add-hook 'c-mode-hook 'fci-mode)
+(setq fci-rule-width 1)
+(setq fci-rule-color "gray")
+
+(add-hook 'python-mode-hook 'fci-mode)
+(add-hook 'c-mode-hook 'fci-mode)
+
 
 #+end_src
 
 #+RESULTS:
-| fci-mode | lsp | macrostep-c-mode-hook |
+| fci-mode | lsp |
 
 
 * Tramp
@@ -582,23 +824,807 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 copied from:
 https://github.com/doomemacs/doomemacs/issues/3909
 
-#+begin_src
-(after! tramp
-  (setq tramp-inline-compress-start-size 1000)
-  (setq tramp-copy-size-limit 10000)
-  (setq vc-handled-backends '(Git))
-  (setq tramp-verbose 1)
-  (setq tramp-default-method "scp")
-  (setq tramp-use-ssh-controlmaster-options nil)
-  (setq projectile--mode-line "Projectile")
-  (setq tramp-verbose 1))
+#+begin_src emacs-lisp
+  ;; (after! tramp
+  ;;   (setq tramp-inline-compress-start-size 1000)
+  ;;   (setq tramp-copy-size-limit 10000)
+  ;;   (setq vc-handled-backends '(Git))
+  ;;   (setq tramp-verbose 1)
+  ;;   (setq tramp-default-method "scp")
+  ;;   (setq tramp-use-ssh-controlmaster-options nil)
+  ;;   (setq projectile--mode-line "Projectile")
+  ;;   (setq tramp-verbose 1))
 #+end_src
 
 #+RESULTS:
 | python-isort-on-save-mode | yasnippet-snippets--fixed-indent | elpy-mode | doom-modeline-env-setup-python |
 
+#+begin_src emacs-lisp
 
-  ,#+begin_src emacs-lisp
+    ;; ;; treemacs - copied from the repo docs
+
+      ;; (use-package treemacs
+      ;;   :ensure t
+      ;;   :defer t
+      ;;   :init
+      ;;   (with-eval-after-load 'winum
+      ;;     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+      ;;   :config
+      ;;   (progn
+      ;;     (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+      ;;           treemacs-deferred-git-apply-delay        0.5
+      ;;           treemacs-directory-name-transformer      #'identity
+      ;;           treemacs-display-in-side-window          t
+      ;;           treemacs-eldoc-display                   'simple
+      ;;           treemacs-file-event-delay                5000
+      ;;           treemacs-file-extension-regex            treemacs-last-period-regex-value
+      ;;           treemacs-file-follow-delay               0.2
+      ;;           treemacs-file-name-transformer           #'identity
+      ;;           treemacs-follow-after-init               t
+      ;;           treemacs-expand-after-init               t
+      ;;           treemacs-find-workspace-method           'find-for-file-or-pick-first
+      ;;           treemacs-git-command-pipe                ""
+      ;;           treemacs-goto-tag-strategy               'refetch-index
+      ;;           treemacs-header-scroll-indicators        '(nil . "^^^^^^")'
+      ;;           treemacs-hide-dot-git-directory          t
+      ;;           treemacs-indentation                     2
+      ;;           treemacs-indentation-string              " "
+      ;;           treemacs-is-never-other-window           nil
+      ;;           treemacs-max-git-entries                 5000
+      ;;           treemacs-missing-project-action          'ask
+      ;;           treemacs-move-forward-on-expand          nil
+      ;;           treemacs-no-png-images                   nil
+      ;;           treemacs-no-delete-other-windows         t
+      ;;           treemacs-project-follow-cleanup          nil
+      ;;           treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+      ;;           treemacs-position                        'left
+      ;;           treemacs-read-string-input               'from-child-frame
+      ;;           treemacs-recenter-distance               0.1
+      ;;           treemacs-recenter-after-file-follow      nil
+      ;;           treemacs-recenter-after-tag-follow       nil
+      ;;           treemacs-recenter-after-project-jump     'always
+      ;;           treemacs-recenter-after-project-expand   'on-distance
+      ;;           treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+      ;;           treemacs-show-cursor                     nil
+      ;;           treemacs-show-hidden-files               t
+      ;;           treemacs-silent-filewatch                nil
+      ;;           treemacs-silent-refresh                  nil
+      ;;           treemacs-sorting                         'alphabetic-asc
+      ;;           treemacs-select-when-already-in-treemacs 'move-back
+      ;;           treemacs-space-between-root-nodes        t
+      ;;           treemacs-tag-follow-cleanup              t
+      ;;           treemacs-tag-follow-delay                1.5
+      ;;           treemacs-text-scale                      nil
+      ;;           treemacs-user-mode-line-format           nil
+      ;;           treemacs-user-header-line-format         nil
+      ;;           treemacs-wide-toggle-width               70
+      ;;           treemacs-width                           35
+      ;;           treemacs-width-increment                 1
+      ;;           treemacs-width-is-initially-locked       t
+      ;;           treemacs-workspace-switch-cleanup        nil)
+
+      ;;     ;; The default width and height of the icons is 22 pixels. If you are
+      ;;     ;; using a Hi-DPI display, uncomment this to double the icon size.
+      ;;     ;;(treemacs-resize-icons 44)
+
+      ;;     (treemacs-follow-mode t)
+      ;;     (treemacs-filewatch-mode t)
+      ;;     (treemacs-fringe-indicator-mode 'always)
+      ;;     (when treemacs-python-executable
+      ;;       (treemacs-git-commit-diff-mode t))
+
+      ;;     (pcase (cons (not (null (executable-find "git")))
+      ;;                  (not (null treemacs-python-executable)))
+      ;;       (`(t . t)
+      ;;        (treemacs-git-mode 'deferred))
+      ;;       (`(t . _)
+      ;;        (treemacs-git-mode 'simple)))
+
+      ;;     (treemacs-hide-gitignored-files-mode nil))
+      ;;   :bind
+      ;;   (:map global-map
+      ;;         ("M-0"       . treemacs-select-window)
+      ;;         ("C-x t 1"   . treemacs-delete-other-windows)
+      ;;         ("C-x t t"   . treemacs)
+      ;;         ("C-x t d"   . treemacs-select-directory)
+      ;;         ("C-x t B"   . treemacs-bookmark)
+      ;;         ("C-x t C-t" . treemacs-find-file)
+      ;;         ("C-x t M-t" . treemacs-find-tag)))
+
+      ;; (use-package treemacs-evil
+      ;;   :after (treemacs evil)
+      ;;   :ensure t)
+
+      ;; (use-package treemacs-projectile
+      ;;   :after (treemacs projectile)
+      ;;   :ensure t)
+
+      ;; (use-package treemacs-icons-dired
+      ;;   :hook (dired-mode . treemacs-icons-dired-enable-once)
+      ;;   :ensure t)
+
+      ;; (use-package treemacs-magit
+      ;;   :after (treemacs magit)
+      ;;   :ensure t)
+
+      ;; (use-package treemacs-persp ;;treemacs-perspective if you use perspective.el vs. persp-mode
+      ;;   :after (treemacs persp-mode) ;;or perspective vs. persp-mode
+      ;;   :ensure t
+      ;;   :config (treemacs-set-scope-type 'Perspectives))
+
+      ;; (use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+      ;;   :after (treemacs)
+      ;;   :ensure t
+      ;;   :config (treemacs-set-scope-type 'Tabs))
+
+
+
+      ;; ;; Match parens
+      ;; ;;(show-paren-mode 1)
+
+      ;; ;; Let's try ivy
+      ;; (use-package ivy
+      ;;   :diminish
+      ;;   :bind (("C-s" . swiper)
+      ;;          :map ivy-minibuffer-map
+      ;;          ("TAB" . ivy-alt-done)
+      ;;          ("C-l" . ivy-alt-done)
+      ;;          ;;("C-j" . ivy-next-line)
+      ;;          ;;("C-k" . ivy-previous-line)
+      ;;          :map ivy-switch-buffer-map
+      ;;          ("C-k" . ivy-previous-line)
+      ;;          ("C-l" . ivy-done)
+      ;;          ("C-d" . ivy-switch-buffer-kill)
+      ;;          :map ivy-reverse-i-search-map
+      ;;          ("C-k" . ivy-previous-line)
+      ;;          ("C-d" . ivy-reverse-i-search-kill))
+      ;;   :config
+      ;;   (ivy-mode 1))
+
+      ;; (use-package ivy-rich
+      ;;     :init
+      ;;   (ivy-rich-mode 1))
+
+      ;; (use-package which-key
+      ;;   :init (which-key-mode)
+      ;;   :diminish which-key-mode
+      ;;   :config(setq which-key-idle-delay 0.5))
+
+
+      ;; (use-package counsel
+      ;;   :bind (("C-M-j" . 'counsel-switch-buffer)
+      ;;          :map minibuffer-local-map
+      ;;          ("C-r" . 'counsel-minibuffer-history))
+      ;;   :custom
+      ;;   (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+      ;;   :config
+      ;;   (counsel-mode 1))
+
+      ;; ;; Try projectile
+      ;; (use-package projectile
+      ;;   :ensure t
+      ;;   ;;:pin melpa-stable
+      ;;   :init
+      ;;   (projectile-mode +1)
+      ;;   :bind (:map projectile-mode-map ("C-c p" . projectile-command-map)))
+
+      ;; (use-package rainbow-delimiters
+      ;;   :hook (prog-mode . rainbow-delimiters-mode))
+
+
+      ;; (setq elpy-rpc-python-command "/Users/scott/miniconda3/bin/python")
+      ;; (setq elpy-rpc-virtualenv-path 'current)
+
+      ;; ;; flycheck
+      ;; (use-package flycheck
+      ;; 	     :ensure t
+      ;; 	     :init (global-flycheck-mode))
+
+
+      ;; ;; anaconda-mode
+      ;; ;;(use-package anaconda-mode
+      ;; ;;  :ensure t
+      ;; ;;  )
+
+
+      ;; ;; company-mode
+      ;; ;;(use-package company-mode
+      ;; ;;  :ensure t)
+
+      ;; (global-company-mode)
+      ;; ;;(global-set-key (kbd "<tab>") #'company-indent-or-complete-common)
+
+
+
+      ;; ;; ;; yasnippets
+      ;; ;; (use-package yasnippet                  ; Snippets
+      ;; ;;   :ensure t
+      ;; ;;   :config
+      ;; ;;   (validate-setq
+      ;; ;;    yas-verbosity 1                      ; No need to be so verbose
+      ;; ;;    yas-wrap-around-region t)
+
+      ;; ;;   (with-eval-after-load 'yasnippet
+      ;; ;;     (validate-setq yas-snippet-dirs '(yasnippet-snippets-dir)))
+
+      ;; ;;   (yas-reload-all)
+      ;; ;;   (yas-global-mode))
+
+      ;; (use-package yasnippet-snippets         ; Collection of snippets
+      ;;   :ensure t)
+
+
+      ;; ;; fci mode
+      ;; (use-package fill-column-indicator
+      ;;   :init (fci-mode 1))
+
+      ;; (set-fill-column 80)
+
+      ;; ;;
+      ;; (defvar my-packages
+      ;;   '(ein
+      ;;     py-autopep8
+      ;;     auto-complete
+      ;;     clang-format
+      ;;     sublimity
+      ;;     slime))
+
+      ;; (mapc #'(lambda (package)
+      ;;     (unless (package-installed-p package)
+      ;;       (package-install package)))
+      ;;       my-packages)
+
+      ;; ;; BASIC CUSTOMIZATION
+      ;; ;; --------------------------------------
+
+      ;; ;; sublimity
+      ;; ;;(require 'sublimity)
+      ;; ;;(require 'sublimity-scroll)
+      ;; ;;(require 'sublimity-map) ;; experimental
+      ;; ;;(require 'sublimity-attractive)
+
+
+
+      ;; ;;clang-format
+      ;; ;; (add-hook 'c-mode-common-hook
+      ;; ;; 	  (function (lambda ()
+      ;; ;; 		      (add-hook 'before-save-hook
+      ;; ;; 				'clang-format-buffer) )))
+
+
+      ;; ;; ;;autocomplete
+      ;; ;; (require 'auto-complete)
+      ;; ;; (require 'auto-complete-config)
+      ;; ;; (ac-config-default)
+
+      ;; ;; ;;yasnippet
+      ;; ;; (require 'yasnippet)
+      ;; ;; (yas-global-mode 1)
+
+      ;; ;; ;;iedit
+
+      ;; ;; ;;remap key based on b yuksel tutorial
+      ;; ;; (define-key global-map (kbd "C-c ;") 'iedit-mode)
+
+      ;; ;; ;;flymake google cpp
+      ;; ;; (defun my:flymake-google-init ()
+      ;; ;;   (require 'flymake-google-cpplint)
+      ;; ;;   (custom-set-variables
+      ;; ;;    '(flymake-google-cpplint-command "/home/scott/miniconda3/bin/cpplint")
+      ;; ;;    )
+      ;; ;;   (flymake-google-cpplint-load)
+      ;; ;;   )
+
+      ;; ;; (add-hook 'c-mode-hook 'my:flymake-google-init)
+      ;; ;; (add-hook 'c++-mode-hook 'my:flymake-google-init)
+
+
+      ;; ;;;;emacs-flymake-cursor to use flymake cursor w/ emacs >26
+      ;; ;;(use-package flymake-cursor
+      ;; ;;  :load-path "~/.emacs.d/repos/emacs-flymake-cursor" ;; cloned repo path
+      ;; ;;  :config
+      ;; ;;  (flymake-cursor-mode))
+
+
+      ;; ;;Platform IO
+      ;; ;;(require 'platformio-mode)
+
+      ;; ;; Add the required company backend.
+      ;; ;;(with-eval-after-load 'company
+      ;; ;;  (add-to-list 'company-backends 'company-irony)
+      ;; ;; Enable irony for all c++ files, and platformio-mode only
+      ;; ;; when needed (platformio.ini present in project root).
+      ;; ;;(add-hook 'c++-mode-hook (lambda ()
+      ;; ;;                           (irony-mode)
+      ;; ;;                          (irony-eldoc)
+      ;; ;;                         (platformio-conditionally-enable)))
+
+      ;; ;; Use irony's completion functions.
+      ;; ;;(add-hook 'irony-mode-hook
+      ;; ;;          (lambda ()
+      ;; ;;            (define-key irony-mode-map [remap completion-at-point]
+      ;; ;;              'irony-completion-at-point-async)
+      ;; ;;
+      ;; ;;            (define-key irony-mode-map [remap complete-symbol]
+      ;; ;;              'irony-completion-at-point-async)
+      ;; ;;
+      ;;  ;;           (irony-cdb-autosetup-compile-options)))
+
+      ;; ;; Setup irony for flycheck.
+      ;; ;;(add-hook 'flycheck-mode-hook 'flycheck-irony-setup)
+      ;; ;;
+
+
+
+
+      ;; ;; PYTHON CONFIGURATION
+      ;; ;; --------------------------------------
+
+      ;; ;;(elpy-enable)
+
+      ;; ;; (elpy-use-ipython)
+      ;; ;; (setq python-shell-interpreter "ipython" python-shell-interpreter-args "--simple-prompt --pprint")
+      ;; ;; ;; use flycheck not flymake with elpy
+      ;; ;; (when (require 'flycheck nil t)
+      ;; ;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+      ;; ;;   (add-hook 'elpy-mode-hook 'flycheck-mode))
+
+      ;; ;; ;; enable autopep8 formatting on save
+      ;; ;;(require 'py-autopep8)
+      ;; ;;(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+
+      ;; ;; ;; Arduino mode
+      ;; ;; (setq auto-mode-alist (cons '("\\.\\(pde\\|ino\\)$" . arduino-mode) auto-mode-alist))
+      ;; ;; (autoload 'arduino-mode "arduino-mode" "Arduino editing mode." t)
+      ;; ;; ;;
+
+
+      ;; ;; ;;
+      ;; ;; ;; C++ stuff
+      ;; ;; (require 'auto-complete)
+      ;; ;; (require 'auto-complete-config)
+      ;; ;; (ac-config-default)
+
+      ;; ;; (require 'yasnippet)
+      ;; ;; (yas-global-mode 1)
+
+      ;; ;; (require 'iedit)
+
+      ;; ;; (defun my:flymake-init ()
+      ;; ;;   (require 'flymake-google-cpplint)
+      ;; ;;   (flymake-google-cpplint-load)
+      ;; ;;   )
+
+      ;; ;; (add-hook 'c-mode-hook 'my:flymake-init)
+      ;; ;; (add-hook 'c++-mode-hook 'my:flymake-init)
+
+
+      ;; ;; init.el ends here
+
+      ;; ;;
+      ;; ;; SLIME
+      ;; ;;
+      ;; ;;(require 'sime)
+      ;; ;;(add-hook 'lisp-mode-hook (lambda () (slime-mode t)))
+      ;; ;;(add-hook 'inferior-lisp-mode-hook (lambda () (inferior-slime-mode t)))
+      ;; ;; Optionally, specify the lisp program you are using. Default is "lisp"
+      ;; ;;(setq inferior-lisp-program "/usr/local/bin/clisp")
+      ;; ;;; .emacs ends here
+
+
+
+
+
+
+
+
+
+    ;; lsp mode
+
+
+    ;; pyight
+    ;; (use-package lsp-pyright
+    ;;   :ensure t
+    ;;   :hook (python-mode . (lambda ()
+    ;;                           (require 'lsp-pyright)
+    ;;                           (lsp))))  ; or lsp-deferred
+
+
+    ;; (use-package lsp-mode
+    ;;   :init
+    ;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+    ;;   (setq lsp-keymap-prefix "C-c l")
+    ;;   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+    ;;          (XXX-mode . lsp)
+    ;;          ;; if you want which-key integration
+    ;;          (lsp-mode . lsp-enable-which-key-integration))
+    ;;   :commands lsp)
+
+
+    ;; eglot
+
+
+
+
+
+
+  ;;   ;; More notes from init.el
+
+
+  ;; ;; treemacs - copied from the repo docs
+
+  ;; (use-package treemacs
+  ;;   :ensure t
+  ;;   :defer t
+  ;;   :init
+  ;;   (with-eval-after-load 'winum
+  ;;     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  ;;   :config
+  ;;   (progn
+  ;;     (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+  ;; 	  treemacs-deferred-git-apply-delay        0.5
+  ;; 	  treemacs-directory-name-transformer      #'identity
+  ;; 	  treemacs-display-in-side-window          t
+  ;; 	  treemacs-eldoc-display                   'simple
+  ;; 	  treemacs-file-event-delay                5000
+  ;; 	  treemacs-file-extension-regex            treemacs-last-period-regex-value
+  ;; 	  treemacs-file-follow-delay               0.2
+  ;; 	  treemacs-file-name-transformer           #'identity
+  ;; 	  treemacs-follow-after-init               t
+  ;; 	  treemacs-expand-after-init               t
+  ;; 	  treemacs-find-workspace-method           'find-for-file-or-pick-first
+  ;; 	  treemacs-git-command-pipe                ""
+  ;; 	  treemacs-goto-tag-strategy               'refetch-index
+  ;; 	  ;;treemacs-header-scroll-indicators        '(nil . "^^^^^^")'
+  ;; 	  treemacs-hide-dot-git-directory          t
+  ;; 	  treemacs-indentation                     2
+  ;; 	  treemacs-indentation-string              " "
+  ;; 	  treemacs-is-never-other-window           nil
+  ;; 	  treemacs-max-git-entries                 5000
+  ;; 	  treemacs-missing-project-action          'ask
+  ;; 	  treemacs-move-forward-on-expand          nil
+  ;; 	  treemacs-no-png-images                   nil
+  ;; 	  treemacs-no-delete-other-windows         t
+  ;; 	  treemacs-project-follow-cleanup          nil
+  ;; 	  treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+  ;; 	  treemacs-position                        'left
+  ;; 	  treemacs-read-string-input               'from-child-frame
+  ;; 	  treemacs-recenter-distance               0.1
+  ;; 	  treemacs-recenter-after-file-follow      nil
+  ;; 	  treemacs-recenter-after-tag-follow       nil
+  ;; 	  treemacs-recenter-after-project-jump     'always
+  ;; 	  treemacs-recenter-after-project-expand   'on-distance
+  ;; 	  treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+  ;; 	  treemacs-show-cursor                     nil
+  ;; 	  treemacs-show-hidden-files               t
+  ;; 	  treemacs-silent-filewatch                nil
+  ;; 	  treemacs-silent-refresh                  nil
+  ;; 	  treemacs-sorting                         'alphabetic-asc
+  ;; 	  treemacs-select-when-already-in-treemacs 'move-back
+  ;; 	  treemacs-space-between-root-nodes        t
+  ;; 	  treemacs-tag-follow-cleanup              t
+  ;; 	  treemacs-tag-follow-delay                1.5
+  ;; 	  treemacs-text-scale                      nil
+  ;; 	  treemacs-user-mode-line-format           nil
+  ;; 	  treemacs-user-header-line-format         nil
+  ;; 	  treemacs-wide-toggle-width               70
+  ;; 	  treemacs-width                           35
+  ;; 	  treemacs-width-increment                 1
+  ;; 	  treemacs-width-is-initially-locked       t
+  ;; 	  treemacs-workspace-switch-cleanup        nil)
+
+  ;;     ;; The default width and height of the icons is 22 pixels. If you are
+  ;;     ;; using a Hi-DPI display, uncomment this to double the icon size.
+  ;;     ;;(treemacs-resize-icons 44)
+
+  ;;     (treemacs-follow-mode t)
+  ;;     (treemacs-filewatch-mode t)
+  ;;     (treemacs-fringe-indicator-mode 'always)
+  ;;     (when treemacs-python-executable
+  ;;       (treemacs-git-commit-diff-mode t))
+
+  ;;     (pcase (cons (not (null (executable-find "git")))
+  ;; 		 (not (null treemacs-python-executable)))
+  ;;       (`(t . t)
+  ;;        (treemacs-git-mode 'deferred))
+  ;;       (`(t . _)
+  ;;        (treemacs-git-mode 'simple)))
+
+
+  ;;     ;;(treemacs-hide-gitignored-files-mode nil)
+  ;;     )
+  ;;   :bind
+  ;;   (:map global-map
+  ;; 	("M-0"       . treemacs-select-window)
+  ;; 	("C-x t 1"   . treemacs-delete-other-windows)
+  ;; 	("C-x t t"   . treemacs)
+  ;; 	("C-x t d"   . treemacs-select-directory)
+  ;; 	("C-x t B"   . treemacs-bookmark)
+  ;; 	("C-x t C-t" . treemacs-find-file)
+  ;; 	("C-x t M-t" . treemacs-find-tag)))
+
+  ;; (use-package treemacs-evil
+  ;;   :after (treemacs evil)
+  ;;   :ensure t)
+
+  ;; (use-package treemacs-projectile
+  ;;   :after (treemacs projectile)
+  ;;   :ensure t)
+
+  ;; (use-package treemacs-icons-dired
+  ;;   :hook (dired-mode . treemacs-icons-dired-enable-once)
+  ;;   :ensure t)
+
+  ;; (use-package treemacs-magit
+  ;;   :after (treemacs magit)
+  ;;   :ensure t)
+
+  ;; (use-package treemacs-persp ;;treemacs-perspective if you use perspective.el vs. persp-mode
+  ;;   :after (treemacs persp-mode) ;;or perspective vs. persp-mode
+  ;;   :ensure t
+  ;;   :config (treemacs-set-scope-type 'Perspectives))
+
+  ;; (use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+  ;;   :after (treemacs)
+  ;;   :ensure t
+  ;;   :config (treemacs-set-scope-type 'Tabs))
+
+
+
+  ;; ;; Match parens
+  ;; ;;(show-paren-mode 1)
+
+  ;; ;; Let's try ivy
+  ;; (use-package ivy
+  ;;   :diminish
+  ;;   :bind (("C-s" . swiper)
+  ;; 	 :map ivy-minibuffer-map
+  ;; 	 ("TAB" . ivy-alt-done)
+  ;; 	 ("C-l" . ivy-alt-done)
+  ;; 	 ;;("C-j" . ivy-next-line)
+  ;; 	 ;;("C-k" . ivy-previous-line)
+  ;; 	 :map ivy-switch-buffer-map
+  ;; 	 ("C-k" . ivy-previous-line)
+  ;; 	 ("C-l" . ivy-done)
+  ;; 	 ("C-d" . ivy-switch-buffer-kill)
+  ;; 	 :map ivy-reverse-i-search-map
+  ;; 	 ("C-k" . ivy-previous-line)
+  ;; 	 ("C-d" . ivy-reverse-i-search-kill))
+  ;;   :config
+  ;;   (ivy-mode 1))
+
+  ;; (use-package ivy-rich
+  ;;     :init
+  ;;   (ivy-rich-mode 1))
+
+  ;; (use-package which-key
+  ;;   :init (which-key-mode)
+  ;;   :diminish which-key-mode
+  ;;   :config(setq which-key-idle-delay 0.5))
+
+
+  ;; (use-package counsel
+  ;;   :bind (("C-M-j" . 'counsel-switch-buffer)
+  ;; 	 :map minibuffer-local-map
+  ;; 	 ("C-r" . 'counsel-minibuffer-history))
+  ;;   :custom
+  ;;   (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+  ;;   :config
+  ;;   (counsel-mode 1))
+
+  ;; ;; magit
+  ;; (use-package magit)
+
+
+  ;; ;; Try projectile
+  ;; (use-package projectile
+  ;;   :ensure t
+  ;;   ;;:pin melpa-stable
+  ;;   :init
+  ;;   (projectile-mode +1)
+  ;;   :bind (:map projectile-mode-map ("C-c p" . projectile-command-map)))
+
+  ;; (use-package rainbow-delimiters
+  ;;   :hook (prog-mode . rainbow-delimiters-mode))
+
+  
+
+  ;; ;; anaconda-mode
+  ;; ;;(use-package anaconda-mode
+  ;; ;;  :ensure t
+  ;; ;;  )
+
+
+  ;; ;; company-mode
+  ;; ;;(use-package company-mode
+  ;; ;;  :ensure t)
+
+  ;; (global-company-mode)
+  ;; ;;(global-set-key (kbd "<tab>") #'company-indent-or-complete-common)
+
+
+
+  ;; ;; ;; yasnippets
+  ;; ;; (use-package yasnippet                  ; Snippets
+  ;; ;;   :ensure t
+  ;; ;;   :config
+  ;; ;;   (validate-setq
+  ;; ;;    yas-verbosity 1                      ; No need to be so verbose
+  ;; ;;    yas-wrap-around-region t)
+
+  ;; ;;   (with-eval-after-load 'yasnippet
+  ;; ;;     (validate-setq yas-snippet-dirs '(yasnippet-snippets-dir)))
+
+  ;; ;;   (yas-reload-all)
+  ;; ;;   (yas-global-mode))
+
+  ;; (use-package yasnippet-snippets         ; Collection of snippets
+  ;;   :ensure t)
+
+
+  ;; ;; fci mode
+  ;; (use-package fill-column-indicator
+  ;;   :init (fci-mode 1))
+
+  ;; (set-fill-column 80)
+
+  ;; ;;
+  ;; (defvar my-packages
+  ;;   '(ein
+  ;;     py-autopep8
+  ;;     auto-complete
+  ;;     clang-format
+  ;;     sublimity
+  ;;     slime))
+
+  ;; (mapc #'(lambda (package)
+  ;;     (unless (package-installed-p package)
+  ;;       (package-install package)))
+  ;;       my-packages)
+
+  ;; BASIC CUSTOMIZATION
+  ;; --------------------------------------
+
+  ;; sublimity
+  ;;(require 'sublimity)
+  ;;(require 'sublimity-scroll)
+  ;;(require 'sublimity-map) ;; experimental
+  ;;(require 'sublimity-attractive)
+
+
+
+  ;;clang-format
+  ;; (add-hook 'c-mode-common-hook
+  ;; 	  (function (lambda ()
+  ;; 		      (add-hook 'before-save-hook
+  ;; 				'clang-format-buffer) )))
+
+
+  ;; ;;autocomplete
+  ;; (require 'auto-complete)
+  ;; (require 'auto-complete-config)
+  ;; (ac-config-default)
+
+  ;; ;;yasnippet
+  ;; (require 'yasnippet)
+  ;; (yas-global-mode 1)
+
+  ;; ;;iedit
+
+  ;; ;;remap key based on b yuksel tutorial
+  ;; (define-key global-map (kbd "C-c ;") 'iedit-mode)
+
+  ;; ;;flymake google cpp
+  ;; (defun my:flymake-google-init ()
+  ;;   (require 'flymake-google-cpplint)
+  ;;   (custom-set-variables
+  ;;    '(flymake-google-cpplint-command "/home/scott/miniconda3/bin/cpplint")
+  ;;    )
+  ;;   (flymake-google-cpplint-load)
+  ;;   )
+
+  ;; (add-hook 'c-mode-hook 'my:flymake-google-init)
+  ;; (add-hook 'c++-mode-hook 'my:flymake-google-init)
+
+
+  ;;;;emacs-flymake-cursor to use flymake cursor w/ emacs >26
+  ;;(use-package flymake-cursor
+  ;;  :load-path "~/.emacs.d/repos/emacs-flymake-cursor" ;; cloned repo path
+  ;;  :config
+  ;;  (flymake-cursor-mode))
+
+
+  ;;Platform IO
+  ;;(require 'platformio-mode)
+
+  ;; Add the required company backend.
+  ;;(with-eval-after-load 'company
+  ;;  (add-to-list 'company-backends 'company-irony)
+  ;; Enable irony for all c++ files, and platformio-mode only
+  ;; when needed (platformio.ini present in project root).
+  ;;(add-hook 'c++-mode-hook (lambda ()
+  ;;                           (irony-mode)
+  ;;                          (irony-eldoc)
+  ;;                         (platformio-conditionally-enable)))
+
+  ;; Use irony's completion functions.
+  ;;(add-hook 'irony-mode-hook
+  ;;          (lambda ()
+  ;;            (define-key irony-mode-map [remap completion-at-point]
+  ;;              'irony-completion-at-point-async)
+  ;;
+  ;;            (define-key irony-mode-map [remap complete-symbol]
+  ;;              'irony-completion-at-point-async)
+  ;;
+   ;;           (irony-cdb-autosetup-compile-options)))
+
+  ;; Setup irony for flycheck.
+  ;;(add-hook 'flycheck-mode-hook 'flycheck-irony-setup)
+  ;;
+
+
+
+
+  ;; PYTHON CONFIGURATION
+  ;; --------------------------------------
+
+  ;;(elpy-enable)
+
+  ;; (elpy-use-ipython)
+  ;; (setq python-shell-interpreter "ipython" python-shell-interpreter-args "--simple-prompt --pprint")
+  ;; ;; use flycheck not flymake with elpy
+  ;; (when (require 'flycheck nil t)
+  ;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  ;;   (add-hook 'elpy-mode-hook 'flycheck-mode))
+
+  ;; ;; enable autopep8 formatting on save
+  ;;(require 'py-autopep8)
+  ;;(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+
+  ;; ;; Arduino mode
+  ;; (setq auto-mode-alist (cons '("\\.\\(pde\\|ino\\)$" . arduino-mode) auto-mode-alist))
+  ;; (autoload 'arduino-mode "arduino-mode" "Arduino editing mode." t)
+  ;; ;;
+
+
+  ;; ;;
+  ;; ;; C++ stuff
+  ;; (require 'auto-complete)
+  ;; (require 'auto-complete-config)
+  ;; (ac-config-default)
+
+  ;; (require 'yasnippet)
+  ;; (yas-global-mode 1)
+
+  ;; (require 'iedit)
+
+  ;; (defun my:flymake-init ()
+  ;;   (require 'flymake-google-cpplint)
+  ;;   (flymake-google-cpplint-load)
+  ;;   )
+
+  ;; (add-hook 'c-mode-hook 'my:flymake-init)
+  ;; (add-hook 'c++-mode-hook 'my:flymake-init)
+
+
+  ;; init.el ends here
+
+  ;;
+  ;; SLIME
+  ;;
+  ;;(require 'sime)
+  ;;(add-hook 'lisp-mode-hook (lambda () (slime-mode t)))
+  ;;(add-hook 'inferior-lisp-mode-hook (lambda () (inferior-slime-mode t)))
+  ;; Optionally, specify the lisp program you are using. Default is "lisp"
+  ;;(setq inferior-lisp-program "/usr/local/bin/clisp")
+  ;;; .emacs ends here
+
+#+end_src
+
+
+
+
+#+begin_src emacs-lisp
 	(message "end of conf.org")
 #+end_src
 
