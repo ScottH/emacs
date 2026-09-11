@@ -2,6 +2,13 @@
 #+PROPERTY: header-args :tangle yes :results silent
 
 * Emacs setup in org
+** File header
+Must stay the first block in this file: the lexical-binding cookie is only
+honoured on the first line of the tangled conf.el.
+#+begin_src emacs-lisp :results silent
+;;; conf.el --- tangled from conf.org -*- lexical-binding: t; -*-
+#+end_src
+
 ** Mesage to let me know it's running
 #+begin_src emacs-lisp :results silent
 (message "Running tangled conf.org")
@@ -67,6 +74,10 @@
   (save-place-mode 1) ;; go back to previous location in files
   (global-auto-revert-mode 1) ;; track changes on disk
   (desktop-save-mode 1)
+  ;; Restore buffers but not frame parameters: desktop saves explicit
+  ;; foreground/background colors and restores them from after-init-hook,
+  ;; which paints over the theme loaded earlier in this file.
+  (setq desktop-restore-frames nil)
   (global-display-line-numbers-mode 1) ;; Enable line numbers globally
 #+end_src
 
@@ -95,46 +106,15 @@
 
 
 * Theme
-** Doom stuff
-#+begin_src emacs-lisp 
+** Font, icons and modeline
+The active theme is ef-autumn, loaded in the ef-themes block below. The
+doom-themes package was removed: no doom theme was ever loaded, and =doom-theme=
+/ =doom-font= belong to Doom Emacs core rather than the package, so they set
+nothing here.
+#+begin_src emacs-lisp
     (set-frame-font "JetBrains Mono 14" nil t)
 
-;;      (setq doom-font (font-spec :family "JetBrains Mono" :size 13)
-;;	    doom-variable-pitch-font (font-spec :family "sans" :size 14))
-	;; Pick a doom theme here
-;;	(message "loading doom theme")
 	(use-package all-the-icons)
-
-	(use-package doom-themes
-	  :ensure t
-	  :config
-	  ;; Global settings (defaults)
-	  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-		doom-themes-enable-italic t) ; if nil, italics is universally disabled
-
-	  (setq doom-theme 'doom-dark+
-		doom-font (font-spec :family "JetBrains Mono" :size 13))
-	  ;; jetbrains font
-	  ;;(setq doom-font (font-spec :family "JetBrains Mono" :size 13))
-	  ;;
-
-	  ;;(load-theme 'doom-ayu-dark t)
-	  ;;
-
-	  ;; Enable flashing mode-line on errors
-	  ;;(doom-themes-visual-bell-config)
-	  ;; Enable custom neotree theme (all-the-icons must be installed!)
-	  ;;(doom-themes-neotree-config)
-	  ;; or for treemacs users
-	  ;;(setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-	  ;;(doom-themes-treemacs-config)
-	  ;; Corrects (and improves) org-mode's native fontification.
-	  (doom-themes-org-config))
-
-  ;; adapted from system crafters presentations
-  ;; NOTE: These settings might not be ideal for your machine, tweak them as needed!
-  ;;(set-face-attribute 'default nil :font "JetBrains Mono");; :weight 'light);; :height 180)
-  ;;(set-face-attribute 'fixed-pitch nil :font "JetBrains Mono");; :weight);; 'light :height 190)
 
   (set-face-attribute 'font-lock-comment-face nil  :slant 'italic)
   (set-face-attribute 'font-lock-function-name-face nil  :slant 'italic)
@@ -347,7 +327,6 @@ Set up shortcuts for code blocks
   ;;(add-hook 'python-mode-hook 'python-isort-on-save-mode)
   ;;(add-hook 'python-mode-hook 'blacken-mode)
   (setq blacken-line-length 100)
-  (progn (require 'linum) (global-linum-mode 0))
 #+end_src
 
 * Programming
@@ -418,14 +397,10 @@ Set up shortcuts for code blocks
      (use-package racket-mode
        :ensure t)
 
-  ;; on my mac 
-  (add-to-list 'load-path "/home/scott/code/outside/emacs-ob-racket")
-
+  ;; Not on MELPA/ELPA - cloned from https://github.com/hasu/emacs-ob-racket
   (use-package ob-racket
+    :ensure nil
     :load-path "/home/scott/code/outside/emacs-ob-racket")
-  
-  ;;(use-package ob-racket
-  ;;:elpaca (:type git :host github :repo "hasu/emacs-ob-racket"))
 
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -436,6 +411,21 @@ Set up shortcuts for code blocks
      ))
      ;;(defun my-org-confirm-babel-evaluate (lang body)
     ;; ;;  (not (member lang '("python" "racket" "emacs-lisp"))))
+#+end_src
+
+** Markdown
+=gfm-mode= is markdown-mode's GitHub Flavored Markdown variant, used for README
+files. =C-c C-c p= previews in a browser but needs an external converter
+(pandoc or multimarkdown) set as =markdown-command=.
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    ;; Each entry is pushed onto auto-mode-alist, so the last one listed is
+    ;; matched first. The README rule must stay last or "\\.md\\'" shadows it.
+    :mode (("\\.md\\'"       . markdown-mode)
+	   ("\\.markdown\\'" . markdown-mode)
+	   ("README\\.md\\'" . gfm-mode))
+    :hook (markdown-mode . visual-line-mode))
 #+end_src
 
 ** Line numbering
@@ -659,14 +649,16 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
 
 ** indent highlights
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+  (use-package highlight-indent-guides
+    :ensure t
+    :hook (prog-mode . highlight-indent-guides-mode)
+    :custom
+    (highlight-indent-guides-method 'character)
+    (highlight-indent-guides-responsive 'top))
 
   ;;(set-face-background 'highlight-indent-guides-odd-face "darkgray")
   ;;(set-face-background 'highlight-indent-guides-even-face "dimgray")
   ;;(set-face-foreground 'highlight-indent-guides-character-face "darkgray")
-
-  (setq highlight-highlight-indent-guides-method "character")
-  (setq highlight-indent-guides-responsive "top")
 #+end_src
 
 ** Add racket to org mode - just notes
@@ -694,16 +686,14 @@ from https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/
   )
 #+end_src
 
-** fci mode for code
+** Fill column indicator for code
+Built in since Emacs 27, replaces the unmaintained fill-column-indicator package.
 #+begin_src emacs-lisp
-  (use-package fill-column-indicator
-  :ensure t)
+  (setq-default display-fill-column-indicator-character ?│)
+  (set-face-foreground 'fill-column-indicator "gray")
 
-(setq fci-rule-width 1)
-(setq fci-rule-color "gray")
-
-(add-hook 'python-mode-hook 'fci-mode)
-(add-hook 'c-mode-hook 'fci-mode)
+  (add-hook 'python-mode-hook 'display-fill-column-indicator-mode)
+  (add-hook 'c-mode-hook 'display-fill-column-indicator-mode)
 #+end_src
 
 ** Tramp
