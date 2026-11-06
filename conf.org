@@ -253,6 +253,7 @@ nothing here.
 	     (string= lang "emacs-lisp")
 	     (string= lang "scheme")
 	     (string= lang "racket")
+	     (string= lang "clojure")
 	     )
 	 )
     )
@@ -303,6 +304,13 @@ Set up shortcuts for code blocks
 	       "#+end_src" n)
 	     "<rs"
 	     "Insert racket sicp code block" ; documentation
+	     'org-tempo-tags)
+
+(tempo-define-template "inline-clojure" ; just some name for the template
+			'("#+begin_src clojure" n p n
+	       "#+end_src" n)
+	     "<cl"
+	     "Insert clojure code block (sicmutils / FDG)" ; documentation
 	     'org-tempo-tags)
 
 #+end_src
@@ -411,6 +419,38 @@ Set up shortcuts for code blocks
      ))
      ;;(defun my-org-confirm-babel-evaluate (lang body)
     ;; ;;  (not (member lang '("python" "racket" "emacs-lisp"))))
+#+end_src
+
+** Clojure (sicmutils / Functional Differential Geometry)
+For working through /Functional Differential Geometry/ (Sussman & Wisdom) with
+[[https://github.com/sicmutils/sicmutils][sicmutils]], a Clojure port of scmutils. Project lives in =~/code/fdg=.
+
+Needs a JDK and the Clojure CLI (=clojure= on PATH). Workflow:
+1. Open =~/code/fdg/fdg.org=.
+2. =M-x cider-jack-in-clj= (or =C-c M-j=) - starts an nREPL using =deps.edn=.
+3. =C-c C-c= on a =clojure= block evaluates it in that REPL.
+#+begin_src emacs-lisp
+  (use-package clojure-mode
+    :ensure t)
+
+  (use-package cider
+    :ensure t
+    :custom
+    (cider-repl-display-help-banner nil)
+    (cider-show-error-buffer 'only-in-repl)
+    ;; sicmutils returns symbolic expressions that can be large
+    (cider-print-fn 'fipp))
+
+  ;; ob-clojure ships with org; evaluate blocks through the running CIDER REPL
+  (use-package ob-clojure
+    :ensure nil
+    :after org
+    :custom
+    (org-babel-clojure-backend 'cider)
+    :config
+    (add-to-list 'org-babel-load-languages '(clojure . t))
+    (org-babel-do-load-languages 'org-babel-load-languages
+				 org-babel-load-languages))
 #+end_src
 
 ** Markdown
